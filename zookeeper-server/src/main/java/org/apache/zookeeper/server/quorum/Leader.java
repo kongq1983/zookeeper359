@@ -824,10 +824,10 @@ public class Leader {
             informAndActivate(p, designatedLeader);
             //turnOffFollowers();
         } else {
-            commit(zxid);
-            inform(p);
+            commit(zxid); // 给所有follower发送commit消息
+            inform(p); // 发送给所有observers
         }
-        zk.commitProcessor.commit(p.request);
+        zk.commitProcessor.commit(p.request); // leader自己commit
         if(pendingSyncs.containsKey(zxid)){
             for(LearnerSyncRequest r: pendingSyncs.remove(zxid)) {
                 sendSync(r);

@@ -36,7 +36,7 @@ import org.apache.zookeeper.server.persistence.FileTxnSnapLog.DatadirException;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 
 /**
- *
+ * 集群启动
  * <h2>Configuration file</h2>
  *
  * When the main() method of this class is used to start the program, the first
