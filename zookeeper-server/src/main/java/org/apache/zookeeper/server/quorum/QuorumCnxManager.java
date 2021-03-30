@@ -221,7 +221,7 @@ public class QuorumCnxManager {
                 throw new InitialMessageException(
                         "Got unrecognized protocol version %s", protocolVersion);
             }
-
+            // server.3=slave2:2888:3888
             sid = din.readLong();
 
             int remaining = din.readInt();
@@ -351,8 +351,8 @@ public class QuorumCnxManager {
     /**
      * First we create the socket, perform SSL handshake and authentication if needed.
      * Then we perform the initiation protocol.
-     *  If this server has initiated the connection, then it gives up on the
-     * connection if it loses challenge. Otherwise, it keeps the connection.
+     *  If this server has initiated the connection, then it gives up on the 如果服务器已启动连接，则关闭
+     * connection if it loses challenge. Otherwise, it keeps the connection. 否则它将保持连接
      */
     public void initiateConnection(final InetSocketAddress electionAddr, final Long sid) {
 
@@ -454,8 +454,8 @@ public class QuorumCnxManager {
             // Sending id and challenge
             // represents protocol version (in other words - message type)
             dout.writeLong(PROTOCOL_VERSION);
-            dout.writeLong(self.getId());
-            String addr = formatInetAddr(self.getElectionAddress());
+            dout.writeLong(self.getId());  // 把自己的sid写入
+            String addr = formatInetAddr(self.getElectionAddress()); // 投自己1票
             byte[] addr_bytes = addr.getBytes();
             dout.writeInt(addr_bytes.length);
             dout.write(addr_bytes);
@@ -477,7 +477,7 @@ public class QuorumCnxManager {
         }
 
         // If lost the challenge, then drop the new connection
-        if (sid > self.getId()) {
+        if (sid > self.getId()) { // sid> 自己的sid  则丢弃 关闭连接
             LOG.info("Have smaller server identifier, so dropping the connection: (myId:{} --> sid:{})", self.getId(), sid);
             closeSocket(sock);
             // Otherwise proceed with the connection

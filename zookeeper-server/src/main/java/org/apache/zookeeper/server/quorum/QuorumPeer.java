@@ -210,7 +210,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             if (s.toLowerCase().equals("observer")) {
                type = LearnerType.OBSERVER;
            } else if (s.toLowerCase().equals("participant")) {
-               type = LearnerType.PARTICIPANT;
+               type = LearnerType.PARTICIPANT; // 默认就是这个
             } else {
                throw new ConfigException("Unrecognised peertype: " + s);
             }

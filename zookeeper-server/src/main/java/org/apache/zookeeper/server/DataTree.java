@@ -93,13 +93,13 @@ public class DataTree {
     /** the root of zookeeper tree */
     private static final String rootZookeeper = "/";
 
-    /** the zookeeper nodes that acts as the management and status node **/
+    /** the zookeeper nodes that acts as the management and status node  /zookeeper **/
     private static final String procZookeeper = Quotas.procZookeeper;
 
     /** this will be the string thats stored as a child of root */
     private static final String procChildZookeeper = procZookeeper.substring(1);
 
-    /**
+    /** /zookeeper/quota
      * the zookeeper quota node that acts as the quota management node for
      * zookeeper
      */
@@ -109,7 +109,7 @@ public class DataTree {
     private static final String quotaChildZookeeper = quotaZookeeper
             .substring(procZookeeper.length() + 1);
 
-    /**
+    /** /zookeeper/config
      * the zookeeper config node that acts as the config management node for
      * zookeeper
      */
@@ -212,7 +212,7 @@ public class DataTree {
      */
     private DataNode root = new DataNode(new byte[0], -1L, new StatPersisted());
 
-    /**
+    /** /zookeeper
      * create a /zookeeper filesystem that is the proc filesystem of zookeeper
      */
     private final DataNode procDataNode = new DataNode(new byte[0], -1L, new StatPersisted());
@@ -226,26 +226,26 @@ public class DataTree {
     public DataTree() {
         /* Rather than fight it, let root have an alias */
         nodes.put("", root);
-        nodes.put(rootZookeeper, root);
+        nodes.put(rootZookeeper, root); // 根目录  /
 
         /** add the proc node and quota node */
         root.addChild(procChildZookeeper);
-        nodes.put(procZookeeper, procDataNode);
+        nodes.put(procZookeeper, procDataNode);  //   /zookeeper
 
         procDataNode.addChild(quotaChildZookeeper);
-        nodes.put(quotaZookeeper, quotaDataNode);
+        nodes.put(quotaZookeeper, quotaDataNode);  // /zookeeper/quota
 
         addConfigNode();
     }
 
-    /**
+    /** 添加配置节点
      * create a /zookeeper/config node for maintaining the configuration (membership and quorum system) info for
      * zookeeper
      */
     public void addConfigNode() {
-        DataNode zookeeperZnode = nodes.get(procZookeeper);
+        DataNode zookeeperZnode = nodes.get(procZookeeper); // /zookeeper
         if (zookeeperZnode != null) { // should always be the case
-            zookeeperZnode.addChild(configChildZookeeper);
+            zookeeperZnode.addChild(configChildZookeeper); // HashSet
         } else {
             assert false : "There's no /zookeeper znode - this should never happen.";
         }
@@ -260,7 +260,7 @@ public class DataTree {
         }
     }
 
-    /**
+    /** zookeeper内置路径
      * is the path one of the special paths owned by zookeeper.
      *
      * @param path
