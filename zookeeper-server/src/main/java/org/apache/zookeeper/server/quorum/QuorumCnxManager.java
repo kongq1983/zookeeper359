@@ -136,14 +136,14 @@ public class QuorumCnxManager {
      */
     private AtomicInteger connectionThreadCnt = new AtomicInteger(0);
 
-    /*
+    /* 就是用来记录其他服务器id以及对应的SendWorker的
      * Mapping from Peer to Thread number
      */
     final ConcurrentHashMap<Long, SendWorker> senderWorkerMap;
     final ConcurrentHashMap<Long, ArrayBlockingQueue<ByteBuffer>> queueSendMap;
     final ConcurrentHashMap<Long, ByteBuffer> lastMessageSent;
 
-    /*
+    /* 保存选票
      * Reception queue
      */
     public final ArrayBlockingQueue<Message> recvQueue;
@@ -655,9 +655,9 @@ public class QuorumCnxManager {
         /*
          * If sending message to myself, then simply enqueue it (loopback).
          */
-        if (this.mySid == sid) {
+        if (this.mySid == sid) { // //如果是本机
              b.position(0);
-             addToRecvQueue(new Message(b.duplicate(), sid));
+             addToRecvQueue(new Message(b.duplicate(), sid)); // //直接添加到recvQueue中
             /*
              * Otherwise send to the corresponding thread to send.
              */
@@ -667,10 +667,10 @@ public class QuorumCnxManager {
               */
              ArrayBlockingQueue<ByteBuffer> bq = new ArrayBlockingQueue<ByteBuffer>(
                 SEND_CAPACITY);
-             ArrayBlockingQueue<ByteBuffer> oldq = queueSendMap.putIfAbsent(sid, bq);
-             if (oldq != null) {
+             ArrayBlockingQueue<ByteBuffer> oldq = queueSendMap.putIfAbsent(sid, bq); // putIfAbsent 如果传入key对应的value已经存在，就返回存在的value，不进行替换。如果不存在，就添加key和value，返回null
+             if (oldq != null) { //如果不是null，说明已经存在了。证明已经投过一票了。就把b加入到bqExisting中
                  addToSendQueue(oldq, b);
-             } else {
+             } else { //如果为null，说明目前为止还没有投过。就把b加入到bq中。为啥添加到不同的队列中？
                  addToSendQueue(bq, b);
              }
              connectOne(sid);
