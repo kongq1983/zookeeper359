@@ -67,7 +67,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
+/** todo zookeeper核心数据结构
  * This class maintains the tree data structure. It doesn't have any networking
  * or client connection code in it so that it can be tested in a stand alone
  * way.

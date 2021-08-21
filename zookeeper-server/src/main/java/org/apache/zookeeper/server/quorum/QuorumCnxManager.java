@@ -697,7 +697,7 @@ public class QuorumCnxManager {
         return initiateConnectionAsync(electionAddr, sid);
     }
 
-    /**
+    /** todo 通过sid连接远程机器
      * Try to establish a connection to server with id sid.
      * The function will return quickly and the connection will be established asynchronously.
      *
@@ -896,7 +896,7 @@ public class QuorumCnxManager {
         /**
          * Sleeps on accept().
          */
-        @Override
+        @Override // todo listener.start();    QuorumPeer.java(1091行启动)
         public void run() {
             int numRetries = 0;
             InetSocketAddress addr;
@@ -912,7 +912,7 @@ public class QuorumCnxManager {
                         LOG.info("Creating TLS-only quorum server socket");
                         ss = new UnifiedServerSocket(self.getX509Util(), false);
                     } else {
-                        ss = new ServerSocket();
+                        ss = new ServerSocket(); // todo 选举端口  选举用  选举用bio方式
                     }
 
                     ss.setReuseAddress(true);
@@ -924,14 +924,14 @@ public class QuorumCnxManager {
                         // Resolve hostname for this server in case the
                         // underlying ip address has changed.
                         self.recreateSocketAddresses(self.getId());
-                        addr = self.getElectionAddress();
+                        addr = self.getElectionAddress(); //选举端口
                     }
                     LOG.info("{} is accepting connections now, my election bind port: {}", QuorumCnxManager.this.mySid, addr.toString());
                     setName(addr.toString());
                     ss.bind(addr);
                     while (!shutdown) {
                         try {
-                            client = ss.accept();
+                            client = ss.accept(); // 等着选票
                             setSockOpts(client);
                             LOG.info("Received connection request from {}", client.getRemoteSocketAddress());
                             // Receive and handle the connection request

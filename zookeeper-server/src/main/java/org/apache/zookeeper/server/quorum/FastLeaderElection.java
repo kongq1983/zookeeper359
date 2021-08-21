@@ -190,8 +190,8 @@ public class FastLeaderElection implements Election {
          */
         long peerEpoch;
     }
-
-    LinkedBlockingQueue<ToSend> sendqueue;
+    /** 发送选票队列  */
+    LinkedBlockingQueue<ToSend> sendqueue;  /** 接收选票队列  */
     LinkedBlockingQueue<Notification> recvqueue;
 
     /**
@@ -509,13 +509,13 @@ public class FastLeaderElection implements Election {
          */
         Messenger(QuorumCnxManager manager) {
 
-            this.ws = new WorkerSender(manager);
+            this.ws = new WorkerSender(manager); // todo 发送选票
 
             this.wsThread = new Thread(this.ws,
                     "WorkerSender[myid=" + self.getId() + "]");
             this.wsThread.setDaemon(true);
 
-            this.wr = new WorkerReceiver(manager);
+            this.wr = new WorkerReceiver(manager); // todo 接收选票
 
             this.wrThread = new Thread(this.wr,
                     "WorkerReceiver[myid=" + self.getId() + "]");
@@ -543,7 +543,7 @@ public class FastLeaderElection implements Election {
     QuorumPeer self;
     Messenger messenger;
     AtomicLong logicalclock = new AtomicLong(); /* Election instance */
-    long proposedLeader;
+    long proposedLeader; // 被推举leader
     long proposedZxid;
     long proposedEpoch;
 
@@ -670,18 +670,18 @@ public class FastLeaderElection implements Election {
         LOG.debug("FLE is down");
     }
 
-    /**
+    /**  todo 发送选票--重要 ***********
      * Send notifications to all peers upon a change in our vote
      */
     private void sendNotifications() {
-        for (long sid : self.getCurrentAndNextConfigVoters()) {
+        for (long sid : self.getCurrentAndNextConfigVoters()) { // 得到所有投票机器
             QuorumVerifier qv = self.getQuorumVerifier();
             ToSend notmsg = new ToSend(ToSend.mType.notification,
-                    proposedLeader,
-                    proposedZxid,
-                    logicalclock.get(),
+                    proposedLeader, // 当前机器myid
+                    proposedZxid,   // 当前机器的zxid
+                    logicalclock.get(), // electionEpoch
                     QuorumPeer.ServerState.LOOKING,
-                    sid,
+                    sid, // 其他目标机器的myid
                     proposedEpoch, qv.toString().getBytes());
             if(LOG.isDebugEnabled()){
                 LOG.debug("Sending Notification: " + proposedLeader + " (n.leader), 0x"  +
@@ -838,7 +838,7 @@ public class FastLeaderElection implements Election {
      * @return long
      */
     private long getInitId(){
-        if(self.getQuorumVerifier().getVotingMembers().containsKey(self.getId()))       
+        if(self.getQuorumVerifier().getVotingMembers().containsKey(self.getId())) // 包含自己机器
             return self.getId();
         else return Long.MIN_VALUE;
     }
@@ -897,7 +897,7 @@ public class FastLeaderElection implements Election {
 
             synchronized(this){
                 logicalclock.incrementAndGet();
-                updateProposal(getInitId(), getInitLastLoggedZxid(), getPeerEpoch());
+                updateProposal(getInitId(), getInitLastLoggedZxid(), getPeerEpoch()); //getInitId()=自己myid
             }
 
             LOG.info("New election. My id =  " + self.getId() +

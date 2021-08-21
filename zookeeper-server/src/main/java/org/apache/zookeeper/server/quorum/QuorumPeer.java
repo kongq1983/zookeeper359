@@ -799,7 +799,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     }
 
     private int electionType;
-
+    /** todo 默认是3: FastLeaderElection */
     Election electionAlg;
 
     ServerCnxnFactory cnxnFactory;
@@ -882,7 +882,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         return quorumStats;
     }
 
-    @Override
+    @Override // todo 启动入口
     public synchronized void start() {
         if (!getView().containsKey(myid)) {
             throw new RuntimeException("My id " + myid + " not in the peer list");
@@ -895,10 +895,10 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             LOG.warn("Problem starting AdminServer", e);
             System.out.println(e);
         }
-        startLeaderElection();
+        startLeaderElection(); // todo 开始leader选举
         super.start();
     }
-    // 从本地库中加载
+    // todo 启动loadDataBase入口  从本地库中加载
     private void loadDataBase() {
         try {
             zkDb.loadDataBase();
@@ -947,12 +947,12 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     synchronized public void stopLeaderElection() {
         responder.running = false;
         responder.interrupt();
-    }
+    } // todo 启动startLeaderElection入口 重要
     synchronized public void startLeaderElection() {
-       try {
+       try { // 默认LOOKING状态 // todo 初始化-投票
            if (getPeerState() == ServerState.LOOKING) { // 参数：1、myid。2.最新的zxid。3、当前的纪元号
                currentVote = new Vote(myid, getLastLoggedZxid(), getCurrentEpoch());  //首先投自己一票。在投票箱中写上自己的信息。
-           }
+           } // getLastLoggedZxid= 最大事务id   getCurrentEpoch=当前选举周期
        } catch(IOException e) {
            RuntimeException re = new RuntimeException(e.getMessage());
            re.setStackTrace(e.getStackTrace());
@@ -962,7 +962,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
        // if (!getView().containsKey(myid)) {
       //      throw new RuntimeException("My id " + myid + " not in the peer list");
         //}
-        if (electionType == 0) {
+        if (electionType == 0) { // 默认是3  这里不会执行
             try {
                 udpSocket = new DatagramSocket(getQuorumAddress().getPort());
                 responder = new ResponderThread();
@@ -971,7 +971,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                 throw new RuntimeException(e);
             }
         }
-        this.electionAlg = createElectionAlgorithm(electionType);
+        this.electionAlg = createElectionAlgorithm(electionType); // electionType=3
     }
 
     /**
@@ -1079,7 +1079,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         case 2:
             le = new AuthFastLeaderElection(this, true);
             break;
-        case 3:
+        case 3: //todo 选举算法  重点研究这里
             QuorumCnxManager qcm = createCnxnManager();
             QuorumCnxManager oldQcm = qcmRef.getAndSet(qcm);
             if (oldQcm != null) {
@@ -1088,9 +1088,9 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             }
             QuorumCnxManager.Listener listener = qcm.listener;
             if(listener != null){
-                listener.start();
+                listener.start(); // todo 选举线程启动
                 FastLeaderElection fle = new FastLeaderElection(this, qcm);
-                fle.start();
+                fle.start(); // todo 启动选举  最终启动WorkerSender  WorkerReceiver
                 le = fle;
             } else {
                 LOG.error("Null listener when initializing cnx manager");
@@ -1208,11 +1208,11 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                         try {
                             roZkMgr.start();
                             reconfigFlagClear();
-                            if (shuttingDownLE) {
+                            if (shuttingDownLE) { // 先忽略  默认false
                                 shuttingDownLE = false;
                                 startLeaderElection();
                             }
-                            setCurrentVote(makeLEStrategy().lookForLeader());
+                            setCurrentVote(makeLEStrategy().lookForLeader()); // FastLeaderElection
                         } catch (Exception e) {
                             LOG.warn("Unexpected exception", e);
                             setPeerState(ServerState.LOOKING);
@@ -1373,10 +1373,10 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     public Map<Long,QuorumPeer.QuorumServer> getObservingView() {
        return getQuorumVerifier().getObservingMembers();
     }
-
+    /** todo 得到投票机器  */
     public synchronized Set<Long> getCurrentAndNextConfigVoters() {
         Set<Long> voterIds = new HashSet<Long>(getQuorumVerifier()
-                .getVotingMembers().keySet());
+                .getVotingMembers().keySet()); // getVotingMembers 配置文件中配置的
         if (getLastSeenQuorumVerifier() != null) {
             voterIds.addAll(getLastSeenQuorumVerifier().getVotingMembers()
                     .keySet());
@@ -1777,7 +1777,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         LOG.info("Port unification {}", shouldUsePortUnification ? "enabled" : "disabled");
         this.shouldUsePortUnification = shouldUsePortUnification;
     }
-
+    // todo 启动startServerCnxnFactory入口
     private void startServerCnxnFactory() {
         if (cnxnFactory != null) {
             cnxnFactory.start();

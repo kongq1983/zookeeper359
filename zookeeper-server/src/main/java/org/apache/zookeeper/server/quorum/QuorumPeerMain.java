@@ -165,7 +165,7 @@ public class QuorumPeerMain {
           quorumPeer.enableLocalSessionsUpgrading(
               config.isLocalSessionsUpgradingEnabled());
           //quorumPeer.setQuorumPeers(config.getAllMembers());
-          quorumPeer.setElectionType(config.getElectionAlg());
+          quorumPeer.setElectionType(config.getElectionAlg()); // 默认选举算法3
           quorumPeer.setMyid(config.getServerId());
           quorumPeer.setTickTime(config.getTickTime());
           quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
