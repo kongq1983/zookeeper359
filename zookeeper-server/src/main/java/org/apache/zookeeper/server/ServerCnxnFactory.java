@@ -129,9 +129,9 @@ public abstract class ServerCnxnFactory {
         if (serverCnxnFactoryName == null) {
             serverCnxnFactoryName = NIOServerCnxnFactory.class.getName();
         }
-        try {
+        try { // org.apache.zookeeper.server.NettyServerCnxnFactory
             ServerCnxnFactory serverCnxnFactory = (ServerCnxnFactory) Class.forName(serverCnxnFactoryName)
-                    .getDeclaredConstructor().newInstance();
+                    .getDeclaredConstructor().newInstance(); // 初始化 zookeeper.serverCnxnFactory的属性 推荐Netty
             LOG.info("Using {} as server connection factory", serverCnxnFactoryName);
             return serverCnxnFactory;
         } catch (Exception e) {

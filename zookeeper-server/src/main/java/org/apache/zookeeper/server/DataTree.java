@@ -226,7 +226,7 @@ public class DataTree {
     public DataTree() {
         /* Rather than fight it, let root have an alias */
         nodes.put("", root);
-        nodes.put(rootZookeeper, root);
+        nodes.put(rootZookeeper, root); // /
 
         /** add the proc node and quota node */
         root.addChild(procChildZookeeper);
