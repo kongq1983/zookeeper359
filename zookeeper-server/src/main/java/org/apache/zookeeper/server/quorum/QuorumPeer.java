@@ -210,7 +210,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             if (s.toLowerCase().equals("observer")) {
                type = LearnerType.OBSERVER;
            } else if (s.toLowerCase().equals("participant")) {
-               type = LearnerType.PARTICIPANT;
+               type = LearnerType.PARTICIPANT; // 默认就是这个
             } else {
                throw new ConfigException("Unrecognised peertype: " + s);
             }
@@ -887,7 +887,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         if (!getView().containsKey(myid)) {
             throw new RuntimeException("My id " + myid + " not in the peer list");
          }
-        loadDataBase();
+        loadDataBase(); // 从本地库中加载
         startServerCnxnFactory();
         try {
             adminServer.start();
@@ -898,7 +898,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         startLeaderElection();
         super.start();
     }
-
+    // 从本地库中加载
     private void loadDataBase() {
         try {
             zkDb.loadDataBase();
@@ -950,8 +950,8 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     }
     synchronized public void startLeaderElection() {
        try {
-           if (getPeerState() == ServerState.LOOKING) {
-               currentVote = new Vote(myid, getLastLoggedZxid(), getCurrentEpoch());
+           if (getPeerState() == ServerState.LOOKING) { // 参数：1、myid。2.最新的zxid。3、当前的纪元号
+               currentVote = new Vote(myid, getLastLoggedZxid(), getCurrentEpoch());  //首先投自己一票。在投票箱中写上自己的信息。
            }
        } catch(IOException e) {
            RuntimeException re = new RuntimeException(e.getMessage());

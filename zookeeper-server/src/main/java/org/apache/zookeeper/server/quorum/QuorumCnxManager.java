@@ -136,14 +136,14 @@ public class QuorumCnxManager {
      */
     private AtomicInteger connectionThreadCnt = new AtomicInteger(0);
 
-    /*
+    /* 就是用来记录其他服务器id以及对应的SendWorker的
      * Mapping from Peer to Thread number
      */
     final ConcurrentHashMap<Long, SendWorker> senderWorkerMap;
     final ConcurrentHashMap<Long, ArrayBlockingQueue<ByteBuffer>> queueSendMap;
     final ConcurrentHashMap<Long, ByteBuffer> lastMessageSent;
 
-    /*
+    /* 保存选票
      * Reception queue
      */
     public final ArrayBlockingQueue<Message> recvQueue;
@@ -221,7 +221,7 @@ public class QuorumCnxManager {
                 throw new InitialMessageException(
                         "Got unrecognized protocol version %s", protocolVersion);
             }
-
+            // server.3=slave2:2888:3888
             sid = din.readLong();
 
             int remaining = din.readInt();
@@ -351,8 +351,8 @@ public class QuorumCnxManager {
     /**
      * First we create the socket, perform SSL handshake and authentication if needed.
      * Then we perform the initiation protocol.
-     *  If this server has initiated the connection, then it gives up on the
-     * connection if it loses challenge. Otherwise, it keeps the connection.
+     *  If this server has initiated the connection, then it gives up on the 如果服务器已启动连接，则关闭
+     * connection if it loses challenge. Otherwise, it keeps the connection. 否则它将保持连接
      */
     public void initiateConnection(final InetSocketAddress electionAddr, final Long sid) {
 
@@ -454,8 +454,8 @@ public class QuorumCnxManager {
             // Sending id and challenge
             // represents protocol version (in other words - message type)
             dout.writeLong(PROTOCOL_VERSION);
-            dout.writeLong(self.getId());
-            String addr = formatInetAddr(self.getElectionAddress());
+            dout.writeLong(self.getId());  // 把自己的sid写入
+            String addr = formatInetAddr(self.getElectionAddress()); // 投自己1票
             byte[] addr_bytes = addr.getBytes();
             dout.writeInt(addr_bytes.length);
             dout.write(addr_bytes);
@@ -477,7 +477,7 @@ public class QuorumCnxManager {
         }
 
         // If lost the challenge, then drop the new connection
-        if (sid > self.getId()) {
+        if (sid > self.getId()) { // sid> 自己的sid  则丢弃 关闭连接
             LOG.info("Have smaller server identifier, so dropping the connection: (myId:{} --> sid:{})", self.getId(), sid);
             closeSocket(sock);
             // Otherwise proceed with the connection
@@ -655,9 +655,9 @@ public class QuorumCnxManager {
         /*
          * If sending message to myself, then simply enqueue it (loopback).
          */
-        if (this.mySid == sid) {
+        if (this.mySid == sid) { // //如果是本机
              b.position(0);
-             addToRecvQueue(new Message(b.duplicate(), sid));
+             addToRecvQueue(new Message(b.duplicate(), sid)); // //直接添加到recvQueue中
             /*
              * Otherwise send to the corresponding thread to send.
              */
@@ -667,10 +667,10 @@ public class QuorumCnxManager {
               */
              ArrayBlockingQueue<ByteBuffer> bq = new ArrayBlockingQueue<ByteBuffer>(
                 SEND_CAPACITY);
-             ArrayBlockingQueue<ByteBuffer> oldq = queueSendMap.putIfAbsent(sid, bq);
-             if (oldq != null) {
+             ArrayBlockingQueue<ByteBuffer> oldq = queueSendMap.putIfAbsent(sid, bq); // putIfAbsent 如果传入key对应的value已经存在，就返回存在的value，不进行替换。如果不存在，就添加key和value，返回null
+             if (oldq != null) { //如果不是null，说明已经存在了。证明已经投过一票了。就把b加入到bqExisting中
                  addToSendQueue(oldq, b);
-             } else {
+             } else { //如果为null，说明目前为止还没有投过。就把b加入到bq中。为啥添加到不同的队列中？
                  addToSendQueue(bq, b);
              }
              connectOne(sid);

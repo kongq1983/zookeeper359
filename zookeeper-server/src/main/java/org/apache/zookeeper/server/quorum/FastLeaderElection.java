@@ -467,7 +467,7 @@ public class FastLeaderElection implements Election {
 
             public void run() {
                 while (!stop) {
-                    try {
+                    try { // //这里取了是把所有的参与者都放进去了。什么时候放进去的呢？ 通过sendNotifications函数放进去的。
                         ToSend m = sendqueue.poll(3000, TimeUnit.MILLISECONDS);
                         if(m == null) continue;
 

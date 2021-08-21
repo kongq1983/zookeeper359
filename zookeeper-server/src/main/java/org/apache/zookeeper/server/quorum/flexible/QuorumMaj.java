@@ -82,16 +82,16 @@ public class QuorumMaj implements QuorumVerifier {
         for (Entry<Object, Object> entry : props.entrySet()) {
             String key = entry.getKey().toString();
             String value = entry.getValue().toString();
-
+            //server.3=zoo3:2888:3888
             if (key.startsWith("server.")) {
                 int dot = key.indexOf('.');
                 long sid = Long.parseLong(key.substring(dot + 1));
                 QuorumServer qs = new QuorumServer(sid, value);
                 allMembers.put(Long.valueOf(sid), qs);
                 if (qs.type == LearnerType.PARTICIPANT)
-                    votingMembers.put(Long.valueOf(sid), qs);
+                    votingMembers.put(Long.valueOf(sid), qs);  // 投票选举
                 else {
-                    observingMembers.put(Long.valueOf(sid), qs);
+                    observingMembers.put(Long.valueOf(sid), qs); // 观察
                 }
             } else if (key.equals("version")) {
                 version = Long.parseLong(value, 16);
