@@ -71,7 +71,7 @@ public class QuorumPeerMain {
 
     protected QuorumPeer quorumPeer;
 
-    /**
+    /** todo zookeeper程序启动入口
      * To start the replicated server specify the configuration file name on
      * the command line.
      * @param args path to the configfile
@@ -119,13 +119,13 @@ public class QuorumPeerMain {
                 .getSnapRetainCount(), config.getPurgeInterval());
         purgeMgr.start();
 
-        if (args.length == 1 && config.isDistributed()) {
+        if (args.length == 1 && config.isDistributed()) { // todo 集群启动
             runFromConfig(config); // 核心
         } else {
             LOG.warn("Either no config or no quorum defined in config, running "
                     + " in standalone mode");
             // there is only server in the quorum -- run as standalone
-            ZooKeeperServerMain.main(args); // 单机启动
+            ZooKeeperServerMain.main(args); // todo 单机启动
         }
     }
 

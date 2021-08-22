@@ -362,7 +362,7 @@ public class QuorumCnxManager {
             if (self.isSslQuorum()) {
                 SSLSocket sslSock = self.getX509Util().createSSLSocket();
                 setSockOpts(sslSock);
-                sslSock.connect(electionAddr, cnxTO);
+                sslSock.connect(electionAddr, cnxTO); // todo 建立连接
                 sslSock.startHandshake();
                 sock = sslSock;
                 LOG.info("SSL handshake complete with {} - {} - {}", sslSock.getRemoteSocketAddress(),
@@ -370,7 +370,7 @@ public class QuorumCnxManager {
             } else {
                 sock = SOCKET_FACTORY.get();
                 setSockOpts(sock);
-                sock.connect(electionAddr, cnxTO);
+                sock.connect(electionAddr, cnxTO); // todo 建立连接
             }
             LOG.debug("Connected to server " + sid);
         } catch (X509Exception e) {
@@ -439,7 +439,7 @@ public class QuorumCnxManager {
             }
         }
     }
-
+    /** todo 给远程机器发送投票  */
     private boolean startConnection(Socket sock, Long sid)
             throws IOException {
         DataOutputStream dout = null;
@@ -738,7 +738,7 @@ public class QuorumCnxManager {
     }
 
 
-    /**
+    /** todo 和其他服务器建立连接
      * Try to establish a connection with each server if one
      * doesn't exist.
      */
@@ -748,7 +748,7 @@ public class QuorumCnxManager {
         for(Enumeration<Long> en = queueSendMap.keys();
             en.hasMoreElements();){
             sid = en.nextElement();
-            connectOne(sid);
+            connectOne(sid); // 和其他服务器建立连接
         }
     }
 
@@ -893,7 +893,7 @@ public class QuorumCnxManager {
             this.socketBindErrorHandler = errorHandler;
         }
 
-        /**
+        /** todo Listener run
          * Sleeps on accept().
          */
         @Override // todo listener.start();    QuorumPeer.java(1091行启动)
@@ -1014,7 +1014,7 @@ public class QuorumCnxManager {
         }
     }
 
-    /**
+    /** todo 发送选票线程逻辑
      * Thread to send messages. Instance waits on a queue, and send a message as
      * soon as there is one available. If connection breaks, then opens a new
      * one.
@@ -1166,7 +1166,7 @@ public class QuorumCnxManager {
         }
     }
 
-    /**
+    /** todo 收到选票线程逻辑
      * Thread to receive messages. Instance waits on a socket read. If the
      * channel breaks, then removes itself from the pool of receivers.
      */
