@@ -406,7 +406,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
      * We need this distinction to decide which ServerState to move to when
      * conditions change (e.g. which state to become after LOOKING).
      */
-    public enum LearnerType {
+    public enum LearnerType {/** PARTICIPANT:参与者 **/
         PARTICIPANT, OBSERVER;
     }
 
@@ -902,27 +902,27 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     private void loadDataBase() {
         try {
             zkDb.loadDataBase();
-
+            // zxid是64位长度的Long类型，其中高32位表示纪元epoch，低32位表示事务标识xid
             // load the epochs
-            long lastProcessedZxid = zkDb.getDataTree().lastProcessedZxid;
-            long epochOfZxid = ZxidUtils.getEpochFromZxid(lastProcessedZxid);
+            long lastProcessedZxid = zkDb.getDataTree().lastProcessedZxid; // 程序启动获取lastProcessedZxid
+            long epochOfZxid = ZxidUtils.getEpochFromZxid(lastProcessedZxid); // 旧的epoch
             try {
-                currentEpoch = readLongFromFile(CURRENT_EPOCH_FILENAME);
+                currentEpoch = readLongFromFile(CURRENT_EPOCH_FILENAME); // 先从currentEpoch本地文件读取Epoch
             } catch(FileNotFoundException e) {
             	// pick a reasonable epoch number
             	// this should only happen once when moving to a
             	// new code version
-            	currentEpoch = epochOfZxid;
+            	currentEpoch = epochOfZxid; // 报错从zxid的高32位获取
             	LOG.info(CURRENT_EPOCH_FILENAME
             	        + " not found! Creating with a reasonable default of {}. This should only happen when you are upgrading your installation",
             	        currentEpoch);
-            	writeLongToFile(CURRENT_EPOCH_FILENAME, currentEpoch);
+            	writeLongToFile(CURRENT_EPOCH_FILENAME, currentEpoch);  // 写入currentEpoch文件
             }
-            if (epochOfZxid > currentEpoch) {
+            if (epochOfZxid > currentEpoch) { // 旧的大于当前最新的
                 throw new IOException("The current epoch, " + ZxidUtils.zxidToString(currentEpoch) + ", is older than the last zxid, " + lastProcessedZxid);
             }
             try {
-                acceptedEpoch = readLongFromFile(ACCEPTED_EPOCH_FILENAME);
+                acceptedEpoch = readLongFromFile(ACCEPTED_EPOCH_FILENAME); // 从acceptedEpoch文件读取
             } catch(FileNotFoundException e) {
             	// pick a reasonable epoch number
             	// this should only happen once when moving to a
@@ -931,7 +931,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             	LOG.info(ACCEPTED_EPOCH_FILENAME
             	        + " not found! Creating with a reasonable default of {}. This should only happen when you are upgrading your installation",
             	        acceptedEpoch);
-            	writeLongToFile(ACCEPTED_EPOCH_FILENAME, acceptedEpoch);
+            	writeLongToFile(ACCEPTED_EPOCH_FILENAME, acceptedEpoch); // 写入acceptedEpoch文件
             }
             if (acceptedEpoch < currentEpoch) {
                 throw new IOException("The accepted epoch, " + ZxidUtils.zxidToString(acceptedEpoch) + " is less than the current epoch, " + ZxidUtils.zxidToString(currentEpoch));
@@ -1210,7 +1210,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                             reconfigFlagClear();
                             if (shuttingDownLE) { // 先忽略  默认false
                                 shuttingDownLE = false;
-                                startLeaderElection();
+                                startLeaderElection(); // todo 重新选举
                             }
                             setCurrentVote(makeLEStrategy().lookForLeader()); // FastLeaderElection 有可能leader选出来了 有可能null
                         } catch (Exception e) {
@@ -1227,7 +1227,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                            reconfigFlagClear();
                             if (shuttingDownLE) {
                                shuttingDownLE = false;
-                               startLeaderElection();
+                               startLeaderElection(); // todo 重新选举
                                }
                             setCurrentVote(makeLEStrategy().lookForLeader());
                         } catch (Exception e) {
@@ -1558,7 +1558,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             LOG.warn("Restarting Leader Election");
             getElectionAlg().shutdown();
             shuttingDownLE = false;
-            startLeaderElection();
+            startLeaderElection(); // 重新选举
         }
     }
 
@@ -1945,7 +1945,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
        if (prevQV.getVersion() < qv.getVersion() && !prevQV.equals(qv)) {
            Map<Long, QuorumServer> newMembers = qv.getAllMembers();
            updateRemotePeerMXBeans(newMembers);
-           if (restartLE) restartLeaderElection(prevQV, qv);
+           if (restartLE) restartLeaderElection(prevQV, qv); // 重新选举
 
            QuorumServer myNewQS = newMembers.get(getId());
            if (myNewQS != null && myNewQS.clientAddr != null

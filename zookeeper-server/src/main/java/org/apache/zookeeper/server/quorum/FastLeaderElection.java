@@ -121,7 +121,7 @@ public class FastLeaderElection implements Election {
         long sid;
         
         QuorumVerifier qv;
-        /*
+        /* 提建议的  是对方
          * epoch of the proposed leader
          */
         long peerEpoch;
@@ -849,7 +849,7 @@ public class FastLeaderElection implements Election {
      * @return long
      */
     private long getInitLastLoggedZxid(){
-        if(self.getLearnerType() == LearnerType.PARTICIPANT)
+        if(self.getLearnerType() == LearnerType.PARTICIPANT) // PARTICIPANT=参与者
             return self.getLastLoggedZxid();
         else return Long.MIN_VALUE;
     }
@@ -860,7 +860,7 @@ public class FastLeaderElection implements Election {
      * @return long
      */
     private long getPeerEpoch(){
-        if(self.getLearnerType() == LearnerType.PARTICIPANT)
+        if(self.getLearnerType() == LearnerType.PARTICIPANT) // PARTICIPANT=参与者
         	try {
         		return self.getCurrentEpoch();
         	} catch(IOException e) {
