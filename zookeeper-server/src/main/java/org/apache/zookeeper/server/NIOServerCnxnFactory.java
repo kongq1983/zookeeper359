@@ -192,7 +192,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
             super("NIOServerCxnFactory.AcceptThread:" + addr);
             this.acceptSocket = ss;
             this.acceptKey =
-                acceptSocket.register(selector, SelectionKey.OP_ACCEPT);
+                acceptSocket.register(selector, SelectionKey.OP_ACCEPT); // todo nio注册accept
             this.selectorThreads = Collections.unmodifiableList(
                 new ArrayList<SelectorThread>(selectorThreads));
             selectorIterator = this.selectorThreads.iterator();
@@ -226,7 +226,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
 
         private void select() {
             try {
-                selector.select();
+                selector.select(); // 轮询io事件
 
                 Iterator<SelectionKey> selectedKeys =
                     selector.selectedKeys().iterator();
@@ -298,10 +298,10 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
                 sc.configureBlocking(false);
 
                 // Round-robin assign this connection to a selector thread
-                if (!selectorIterator.hasNext()) {
+                if (!selectorIterator.hasNext()) { // 到最后1个 重新构建Iter
                     selectorIterator = selectorThreads.iterator();
                 }
-                SelectorThread selectorThread = selectorIterator.next();
+                SelectorThread selectorThread = selectorIterator.next(); // 从多个SelectorThread中选择1个，然后把当前socket
                 if (!selectorThread.addAcceptedConnection(sc)) {
                     throw new IOException(
                         "Unable to add connection to selector queue"
@@ -658,7 +658,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
 
         int numCores = Runtime.getRuntime().availableProcessors();
         // 32 cores sweet spot seems to be 4 selector threads
-        numSelectorThreads = Integer.getInteger(
+        numSelectorThreads = Integer.getInteger( // 8个里面2个
             ZOOKEEPER_NIO_NUM_SELECTOR_THREADS,
             Math.max((int) Math.sqrt((float) numCores/2), 1));
         if (numSelectorThreads < 1) {
@@ -741,7 +741,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
             workerPool = new WorkerService(
                 "NIOWorker", numWorkerThreads, false);
         }
-        for(SelectorThread thread : selectorThreads) {
+        for(SelectorThread thread : selectorThreads) { // todo 把所有的subReactor 启动
             if (thread.getState() == Thread.State.NEW) {
                 thread.start();
             }

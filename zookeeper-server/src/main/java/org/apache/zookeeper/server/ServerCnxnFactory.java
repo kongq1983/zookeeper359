@@ -125,9 +125,9 @@ public abstract class ServerCnxnFactory {
     
     static public ServerCnxnFactory createFactory() throws IOException {
         String serverCnxnFactoryName =
-            System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY);
-        if (serverCnxnFactoryName == null) {
-            serverCnxnFactoryName = NIOServerCnxnFactory.class.getName();
+            System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY); // 根据zookeeper.serverCnxnFactory来决定实例
+        if (serverCnxnFactoryName == null) { // netty: NettyServerCnxnFactory
+            serverCnxnFactoryName = NIOServerCnxnFactory.class.getName(); // nio默认
         }
         try { // org.apache.zookeeper.server.NettyServerCnxnFactory
             ServerCnxnFactory serverCnxnFactory = (ServerCnxnFactory) Class.forName(serverCnxnFactoryName)

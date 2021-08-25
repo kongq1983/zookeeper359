@@ -204,7 +204,7 @@ public class Learner {
             if (s.id == current.getId()) {
                 // Ensure we have the leader's correct IP address before
                 // attempting to connect.
-                s.recreateSocketAddresses();
+                s.recreateSocketAddresses(); //创建和Leader的连接对象 this.electionAddr = new InetSocketAddress(address, port);
                 leaderServer = s;
                 break;
             }

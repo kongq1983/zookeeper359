@@ -79,7 +79,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.apache.zookeeper.common.NetUtils.formatInetAddr;
 
-/**
+/** todo 实现leader选举和数据同步的线程
  * This class manages the quorum protocol. There are three states this server
  * can be in:
  * <ol>
@@ -884,11 +884,11 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
 
     @Override // todo 启动入口
     public synchronized void start() {
-        if (!getView().containsKey(myid)) {
+        if (!getView().containsKey(myid)) { // 集群中不存在myid
             throw new RuntimeException("My id " + myid + " not in the peer list");
          }
         loadDataBase(); // 从本地库中加载
-        startServerCnxnFactory();
+        startServerCnxnFactory(); // 启动zookeeper server 意味着可以进行2181通信了
         try {
             adminServer.start();
         } catch (AdminServerException e) {
@@ -1086,7 +1086,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                 LOG.warn("Clobbering already-set QuorumCnxManager (restarting leader election?)");
                 oldQcm.halt();
             }
-            QuorumCnxManager.Listener listener = qcm.listener;
+            QuorumCnxManager.Listener listener = qcm.listener; // 用来监听数据 -> 监听选票数据
             if(listener != null){
                 listener.start(); // todo 选举线程启动
                 FastLeaderElection fle = new FastLeaderElection(this, qcm);
@@ -1212,7 +1212,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                                 shuttingDownLE = false;
                                 startLeaderElection();
                             }
-                            setCurrentVote(makeLEStrategy().lookForLeader()); // FastLeaderElection
+                            setCurrentVote(makeLEStrategy().lookForLeader()); // FastLeaderElection 有可能leader选出来了 有可能null
                         } catch (Exception e) {
                             LOG.warn("Unexpected exception", e);
                             setPeerState(ServerState.LOOKING);
@@ -1259,7 +1259,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                     } finally {
                        follower.shutdown();
                        setFollower(null);
-                       updateServerState();
+                       updateServerState(); //设置LOOKING
                     }
                     break;
                 case LEADING:

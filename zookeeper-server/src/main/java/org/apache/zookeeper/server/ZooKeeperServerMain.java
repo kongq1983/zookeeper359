@@ -36,7 +36,7 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 单机启动
+/** todo 单机启动
  * This class starts and runs a standalone ZooKeeperServer.
  */
 @InterfaceAudience.Public

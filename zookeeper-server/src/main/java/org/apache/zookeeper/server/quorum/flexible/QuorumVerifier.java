@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.apache.zookeeper.server.quorum.QuorumPeer.QuorumServer;
 
-/**
+/** todo 票据认证
  * All quorum validators have to implement a method called
  * containsQuorum, which verifies if a HashSet of server 
  * identifiers constitutes a quorum.

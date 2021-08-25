@@ -126,7 +126,7 @@ public class QuorumMaj implements QuorumVerifier {
         return sw.toString();
     }    
 
-    /**
+    /** 大于过半
      * Verifies if a set is a majority. Assumes that ackSet contains acks only
      * from votingMembers
      */

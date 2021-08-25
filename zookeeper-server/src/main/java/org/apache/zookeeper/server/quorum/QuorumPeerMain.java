@@ -36,7 +36,7 @@ import org.apache.zookeeper.server.persistence.FileTxnSnapLog.DatadirException;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
 
 /**
- * 集群启动
+ * todo 集群启动
  * <h2>Configuration file</h2>
  *
  * When the main() method of this class is used to start the program, the first
@@ -142,7 +142,7 @@ public class QuorumPeerMain {
       try {
           ServerCnxnFactory cnxnFactory = null;
           ServerCnxnFactory secureCnxnFactory = null;
-
+          // 普通的zookeeper
           if (config.getClientPortAddress() != null) {
               cnxnFactory = ServerCnxnFactory.createFactory();
               cnxnFactory.configure(config.getClientPortAddress(),
@@ -156,7 +156,7 @@ public class QuorumPeerMain {
                       config.getMaxClientCnxns(),
                       true);
           }
-
+            // 实现leader选举和数据同步的线程
           quorumPeer = getQuorumPeer();
           quorumPeer.setTxnFactory(new FileTxnSnapLog(
                       config.getDataLogDir(),
@@ -166,7 +166,7 @@ public class QuorumPeerMain {
               config.isLocalSessionsUpgradingEnabled());
           //quorumPeer.setQuorumPeers(config.getAllMembers());
           quorumPeer.setElectionType(config.getElectionAlg()); // 默认选举算法3
-          quorumPeer.setMyid(config.getServerId());
+          quorumPeer.setMyid(config.getServerId()); // 文件中填的myid
           quorumPeer.setTickTime(config.getTickTime());
           quorumPeer.setMinSessionTimeout(config.getMinSessionTimeout());
           quorumPeer.setMaxSessionTimeout(config.getMaxSessionTimeout());
