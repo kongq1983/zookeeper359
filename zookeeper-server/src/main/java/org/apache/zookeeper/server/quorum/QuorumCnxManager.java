@@ -141,7 +141,7 @@ public class QuorumCnxManager {
      */
     final ConcurrentHashMap<Long, SendWorker> senderWorkerMap;
     final ConcurrentHashMap<Long, ArrayBlockingQueue<ByteBuffer>> queueSendMap;
-    final ConcurrentHashMap<Long, ByteBuffer> lastMessageSent;
+    final ConcurrentHashMap<Long, ByteBuffer> lastMessageSent; // 记录最后1次发送数据
 
     /* 保存选票
      * Reception queue
@@ -314,7 +314,7 @@ public class QuorumCnxManager {
         this.authServer = authServer;
         this.authLearner = authLearner;
         this.quorumSaslAuthEnabled = quorumSaslAuthEnabled;
-
+        // 初始化connectionExecutor线程池
         initializeConnectionExecutor(mySid, quorumCnxnThreadsSize);
 
         // Starts listener thread that waits for connection requests
@@ -397,7 +397,7 @@ public class QuorumCnxManager {
      * asynchronously via separate connection thread.
      */
     public boolean initiateConnectionAsync(final InetSocketAddress electionAddr, final Long sid) {
-        if(!inprogressConnections.add(sid)){
+        if(!inprogressConnections.add(sid)){ // 添加失败 说明已存在
             // simply return as there is a connection request to
             // server 'sid' already in progress.
             LOG.debug("Connection request to server id: {} is already in progress, so skipping this request",
@@ -453,13 +453,13 @@ public class QuorumCnxManager {
 
             // Sending id and challenge
             // represents protocol version (in other words - message type)
-            dout.writeLong(PROTOCOL_VERSION);
+            dout.writeLong(PROTOCOL_VERSION); // todo 投票协议
             dout.writeLong(self.getId());  // 把自己的sid写入
             String addr = formatInetAddr(self.getElectionAddress()); // 投自己1票
             byte[] addr_bytes = addr.getBytes();
             dout.writeInt(addr_bytes.length);
             dout.write(addr_bytes);
-            dout.flush();
+            dout.flush(); //目前只是在socket的OutputStream中
 
             din = new DataInputStream(
                     new BufferedInputStream(sock.getInputStream()));
@@ -477,7 +477,7 @@ public class QuorumCnxManager {
         }
 
         // If lost the challenge, then drop the new connection
-        if (sid > self.getId()) { // sid> 自己的sid  则丢弃 关闭连接
+        if (sid > self.getId()) { // sid> 自己的sid  则丢弃 关闭连接  只能sid大的跟sid小的连接 不能小的跟大连接 (为了防止重复建立连接，只允许 sid 大的主动连接sid小的)
             LOG.info("Have smaller server identifier, so dropping the connection: (myId:{} --> sid:{})", self.getId(), sid);
             closeSocket(sock);
             // Otherwise proceed with the connection
@@ -706,9 +706,9 @@ public class QuorumCnxManager {
     synchronized void connectOne(long sid){
         if (senderWorkerMap.get(sid) != null) {
             LOG.debug("There is a connection already for server " + sid);
-            return;
+            return; // 连接已经存在
         }
-        synchronized (self.QV_LOCK) {
+        synchronized (self.QV_LOCK) { // 创建1个新的连接
             boolean knownId = false;
             // Resolve hostname for the remote server before attempting to
             // connect in case the underlying ip address has changed.
@@ -1098,7 +1098,7 @@ public class QuorumCnxManager {
                 return;
             }
             dout.writeInt(b.capacity());
-            dout.write(b.array());
+            dout.write(b.array()); // dout socket输出流
             dout.flush();
         }
 
@@ -1235,7 +1235,7 @@ public class QuorumCnxManager {
                     byte[] msgArray = new byte[length];
                     din.readFully(msgArray, 0, length);
                     ByteBuffer message = ByteBuffer.wrap(msgArray);
-                    addToRecvQueue(new Message(message.duplicate(), sid));
+                    addToRecvQueue(new Message(message.duplicate(), sid)); // 收到消息 放到 recvQueue
                 }
             } catch (Exception e) {
                 LOG.warn("Connection broken for id " + sid + ", my id = "
@@ -1340,7 +1340,7 @@ public class QuorumCnxManager {
                 }
             }
             try {
-                recvQueue.add(msg);
+                recvQueue.add(msg); // todo 收到投票
             } catch (IllegalStateException ie) {
                 // This should never happen
                 LOG.error("Unable to insert element in the recvQueue " + ie);

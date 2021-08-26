@@ -499,7 +499,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         return x509Util;
     }
 
-    /**
+    /** 当前Leader
      * This is who I think the leader currently is.
      */
     volatile private Vote currentVote;
