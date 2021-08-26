@@ -733,7 +733,7 @@ public class FastLeaderElection implements Election {
                 ((newZxid > curZxid) || ((newZxid == curZxid) && (newId > curId)))));
     }
 
-    /**
+    /** 是否半数通过
      * Termination predicate. Given a set of votes, determines if have
      * sufficient to declare the end of the election round.
      * 
@@ -854,7 +854,7 @@ public class FastLeaderElection implements Election {
         else return Long.MIN_VALUE;
     }
 
-    /** todo 当前节点的epoch
+    /** todo 当前节点的epoch 好像是leader epoch
      * Returns the initial vote value of the peer epoch.
      *
      * @return long
@@ -896,7 +896,7 @@ public class FastLeaderElection implements Election {
             int notTimeout = finalizeWait;
 
             synchronized(this){
-                logicalclock.incrementAndGet();
+                logicalclock.incrementAndGet(); // todo epoch+1 新的投票期数
                 updateProposal(getInitId(), getInitLastLoggedZxid(), getPeerEpoch()); //getInitId()=自己myid
             }
 
@@ -908,7 +908,7 @@ public class FastLeaderElection implements Election {
              * Loop in which we exchange notifications until we find a leader
              */
 
-            while ((self.getPeerState() == ServerState.LOOKING) &&  // LOOKING选举状态
+            while ((self.getPeerState() == ServerState.LOOKING) &&  // LOOKING选举状态 有Leader情况下，新加入节点也是LOOKING
                     (!stop)){
                 /* 收到选票
                  * Remove next notification from queue, times out after 2 times
@@ -925,7 +925,7 @@ public class FastLeaderElection implements Election {
                     if(manager.haveDelivered()){
                         sendNotifications(); // 发送选票
                     } else {
-                        manager.connectAll();
+                        manager.connectAll(); // 和其他所有机器链接
                     }
 
                     /*
@@ -1021,7 +1021,7 @@ public class FastLeaderElection implements Election {
                             recvset.put(n.sid, new Vote(n.leader, n.zxid, n.electionEpoch, n.peerEpoch));
                             if(termPredicate(recvset, new Vote(n.version, n.leader,
                                             n.zxid, n.electionEpoch, n.peerEpoch, n.state))
-                                            && checkLeader(outofelection, n.leader, n.electionEpoch)) {
+                                            && checkLeader(outofelection, n.leader, n.electionEpoch)) { // 半数通过
                                 self.setPeerState((n.leader == self.getId()) ?
                                         ServerState.LEADING: learningState());
                                 Vote endVote = new Vote(n.leader, 

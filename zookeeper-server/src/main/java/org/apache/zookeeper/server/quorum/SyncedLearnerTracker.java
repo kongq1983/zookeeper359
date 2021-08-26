@@ -43,10 +43,10 @@ public class SyncedLearnerTracker {
         }
         return change;
     }
-
+    /** 半数通过 返回 true **/
     public boolean hasAllQuorums() {
         for (QuorumVerifierAcksetPair qvAckset : qvAcksetPairs) {
-            if (!qvAckset.getQuorumVerifier().containsQuorum(qvAckset.getAckset()))
+            if (!qvAckset.getQuorumVerifier().containsQuorum(qvAckset.getAckset())) // 是否半数通过
                 return false;
         }
         return true;

@@ -655,7 +655,7 @@ public class Leader {
                     }
                     tickSkip = !tickSkip;
                 }
-                for (LearnerHandler f : getLearners()) {
+                for (LearnerHandler f : getLearners()) {  // 和Follower发送心跳
                     f.ping();
                 }
             }

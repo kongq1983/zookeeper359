@@ -201,7 +201,7 @@ public class Learner {
         // Find the leader by id
         Vote current = self.getCurrentVote();
         for (QuorumServer s : self.getView().values()) {
-            if (s.id == current.getId()) {
+            if (s.id == current.getId()) { // 寻找leader节点
                 // Ensure we have the leader's correct IP address before
                 // attempting to connect.
                 s.recreateSocketAddresses(); //创建和Leader的连接对象 this.electionAddr = new InetSocketAddress(address, port);
@@ -209,7 +209,7 @@ public class Learner {
                 break;
             }
         }
-        if (leaderServer == null) {
+        if (leaderServer == null) { // 找不到leader
             LOG.warn("Couldn't find the leader with id = "
                     + current.getId());
         }

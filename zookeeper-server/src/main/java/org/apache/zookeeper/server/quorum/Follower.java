@@ -72,9 +72,9 @@ public class Follower extends Learner{
         self.end_fle = 0;
         fzk.registerJMX(new FollowerBean(this, zk), self.jmxLocalPeerBean);
         try {
-            QuorumServer leaderServer = findLeader();            
-            try {
-                connectToLeader(leaderServer.addr, leaderServer.hostname); // 连接Leader
+            QuorumServer leaderServer = findLeader();  // 查找leader
+            try { // todo leaderServer如果返回null ，会不会报空异常?
+                connectToLeader(leaderServer.addr, leaderServer.hostname); // 和Leader建立连接
                 long newEpochZxid = registerWithLeader(Leader.FOLLOWERINFO);
                 if (self.isReconfigStateChange())
                    throw new Exception("learned about role change");
@@ -86,20 +86,20 @@ public class Follower extends Learner{
                             + " is less than our accepted epoch " + ZxidUtils.zxidToString(self.getAcceptedEpoch()));
                     throw new IOException("Error: Epoch of leader is lower");
                 }
-                syncWithLeader(newEpochZxid);                
+                syncWithLeader(newEpochZxid); // todo 同步leader数据
                 QuorumPacket qp = new QuorumPacket();
-                while (this.isRunning()) {
-                    readPacket(qp);
+                while (this.isRunning()) {  // todo 死循环 从leader拿数据  这里一直死循环  除了断开
+                    readPacket(qp); // todo 如果socket断了 leader挂了   会抛异常
                     processPacket(qp);
                 }
             } catch (Exception e) {
-                LOG.warn("Exception when following the leader", e);
+                LOG.warn("Exception when following the leader", e); // todo leader挂了
                 try {
                     sock.close();
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-    
+
                 // clear pending revalidations
                 pendingRevalidations.clear();
             }
@@ -115,7 +115,7 @@ public class Follower extends Learner{
      */
     protected void processPacket(QuorumPacket qp) throws Exception{
         switch (qp.getType()) {
-        case Leader.PING:            
+        case Leader.PING:        // ping
             ping(qp);            
             break;
         case Leader.PROPOSAL:           

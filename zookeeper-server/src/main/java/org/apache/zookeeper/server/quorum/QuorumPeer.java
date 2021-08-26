@@ -130,10 +130,10 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
      */
     private ZKDatabase zkDb;
 
-    public static final class AddressTuple {
-        public final InetSocketAddress quorumAddr;
-        public final InetSocketAddress electionAddr;
-        public final InetSocketAddress clientAddr;
+    public static final class AddressTuple { //server.1=
+        public final InetSocketAddress quorumAddr; // 数据同步端口
+        public final InetSocketAddress electionAddr; // 选举端口
+        public final InetSocketAddress clientAddr; // 2181
 
         public AddressTuple(InetSocketAddress quorumAddr, InetSocketAddress electionAddr, InetSocketAddress clientAddr) {
             this.quorumAddr = quorumAddr;
@@ -1169,12 +1169,12 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         }
 
         try {
-            /*
+            /* todo 节点逻辑 比如新节点启动
              * Main loop
              */
             while (running) {
                 switch (getPeerState()) {
-                case LOOKING:
+                case LOOKING: // leader选举完后 会变成FOLLOW
                     LOG.info("LOOKING");
 
                     if (Boolean.getBoolean("readonlymode.enabled")) {
@@ -1211,7 +1211,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                             if (shuttingDownLE) { // 先忽略  默认false
                                 shuttingDownLE = false;
                                 startLeaderElection(); // todo 重新选举
-                            }
+                            } // todo 设置leader
                             setCurrentVote(makeLEStrategy().lookForLeader()); // FastLeaderElection 有可能leader选出来了 有可能null
                         } catch (Exception e) {
                             LOG.warn("Unexpected exception", e);
@@ -1258,8 +1258,8 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                        LOG.warn("Unexpected exception",e);
                     } finally {
                        follower.shutdown();
-                       setFollower(null);
-                       updateServerState(); //设置LOOKING
+                       setFollower(null);  //
+                       updateServerState(); //设置LOOKING  重新选举
                     }
                     break;
                 case LEADING:
@@ -1304,10 +1304,10 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
            return;
        }
 
-       if (getId() == getCurrentVote().getId()) {
+       if (getId() == getCurrentVote().getId()) { // leader
            setPeerState(ServerState.LEADING);
            LOG.debug("PeerState set to LEADING");
-       } else if (getLearnerType() == LearnerType.PARTICIPANT) {
+       } else if (getLearnerType() == LearnerType.PARTICIPANT) { // 除了leader外，其他参与者都改为FOLLOWING
            setPeerState(ServerState.FOLLOWING);
            LOG.debug("PeerState set to FOLLOWING");
        } else if (getLearnerType() == LearnerType.OBSERVER) {
