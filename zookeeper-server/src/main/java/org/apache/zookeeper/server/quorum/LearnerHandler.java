@@ -956,7 +956,7 @@ public class LearnerHandler extends ZooKeeperThread {
             synchronized(leader) {
                 id = leader.lastProposed;
             }
-            QuorumPacket ping = new QuorumPacket(Leader.PING, id, null, null);
+            QuorumPacket ping = new QuorumPacket(Leader.PING, id, null, null); // todo leader和follower发送ping
             queuePacket(ping);
         } else {
             LOG.warn("Closing connection to peer due to transaction timeout.");
