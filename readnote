@@ -1,0 +1,19 @@
+
+QuorumPeer: 1177 启动  主逻辑
+
+# 选注网络通信
+QuorumCnxManager
+
+
+
+# 选主算法
+FastLeaderElection
+
+-- FastLeaderElection.Messenger.WorkerReceiver 211
+-- FastLeaderElection.Messenger.WorkerSender  458
+
+----------------------------------------------
+
+# Leader
+
+# Follow

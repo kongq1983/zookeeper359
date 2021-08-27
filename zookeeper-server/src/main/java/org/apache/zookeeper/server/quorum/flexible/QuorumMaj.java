@@ -77,18 +77,18 @@ public class QuorumMaj implements QuorumVerifier {
         }
         half = votingMembers.size() / 2;
     }
-
+    // todo 解析好allMembers  votingMembers
     public QuorumMaj(Properties props) throws ConfigException {
         for (Entry<Object, Object> entry : props.entrySet()) {
             String key = entry.getKey().toString();
             String value = entry.getValue().toString();
             //server.3=zoo3:2888:3888
-            if (key.startsWith("server.")) {
+            if (key.startsWith("server.")) { // 处理server.  集群机器
                 int dot = key.indexOf('.');
-                long sid = Long.parseLong(key.substring(dot + 1));
-                QuorumServer qs = new QuorumServer(sid, value);
-                allMembers.put(Long.valueOf(sid), qs);
-                if (qs.type == LearnerType.PARTICIPANT)
+                long sid = Long.parseLong(key.substring(dot + 1)); // 得到sid
+                QuorumServer qs = new QuorumServer(sid, value); // value = zoo:ip1:ip2
+                allMembers.put(Long.valueOf(sid), qs); // 全部机器
+                if (qs.type == LearnerType.PARTICIPANT) //  默认PARTICIPANT
                     votingMembers.put(Long.valueOf(sid), qs);  // 投票选举
                 else {
                     observingMembers.put(Long.valueOf(sid), qs); // 观察

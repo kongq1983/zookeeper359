@@ -242,8 +242,8 @@ public class QuorumPeerConfig {
         String secureClientPortAddress = null;
         VerifyingFileFactory vff = new VerifyingFileFactory.Builder(LOG).warnForRelativePath().build();
         for (Entry<Object, Object> entry : zkProp.entrySet()) {
-            String key = entry.getKey().toString().trim();
-            String value = entry.getValue().toString().trim();
+            String key = entry.getKey().toString().trim(); // server.1
+            String value = entry.getValue().toString().trim(); // ip:2888:3888
             if (key.equals("dataDir")) {
                 dataDir = vff.create(value);
             } else if (key.equals("dataLogDir")) {
@@ -332,7 +332,7 @@ public class QuorumPeerConfig {
             } else if (key.equals("quorum.cnxn.threads.size")) {
                 quorumCnxnThreadsSize = Integer.parseInt(value);
             } else {
-                System.setProperty("zookeeper." + key, value);
+                System.setProperty("zookeeper." + key, value); // server.1 这种key  进入这里  zookeeper.server.1=ip:port1:port2
             }
         }
 
@@ -384,7 +384,7 @@ public class QuorumPeerConfig {
                     InetAddress.getByName(clientPortAddress), clientPort);
             LOG.info("clientPortAddress is {}", formatInetAddr(this.clientPortAddress));
         } else {
-            this.clientPortAddress = new InetSocketAddress(clientPort);
+            this.clientPortAddress = new InetSocketAddress(clientPort); // 默认2181
             LOG.info("clientPortAddress is {}", formatInetAddr(this.clientPortAddress));
         }
 
@@ -599,7 +599,7 @@ public class QuorumPeerConfig {
             return new QuorumMaj(dynamicConfigProp);
         }
     }
-
+    // todo 处理集群配置
     void setupQuorumPeerConfig(Properties prop, boolean configBackwardCompatibilityMode)
             throws IOException, ConfigException {
         quorumVerifier = parseDynamicConfig(prop, electionAlg, true, configBackwardCompatibilityMode);
@@ -609,7 +609,7 @@ public class QuorumPeerConfig {
         checkValidity();
     }
 
-    /**
+    /** todo 解析集群配置
      * Parse dynamic configuration file and return
      * quorumVerifier for new configuration.
      * @param dynamicConfigProp Properties to parse from.
@@ -628,7 +628,7 @@ public class QuorumPeerConfig {
                throw new ConfigException("Unrecognised parameter: " + key);
             }
         }
-
+        //  todo 解析集群机器 ****** QuorumMaj
         QuorumVerifier qv = createQuorumVerifier(dynamicConfigProp, isHierarchical);
 
         int numParticipators = qv.getVotingMembers().size();
@@ -665,7 +665,7 @@ public class QuorumPeerConfig {
              */
            if (eAlg != 0) {
                for (QuorumServer s : qv.getVotingMembers().values()) {
-                   if (s.electionAddr == null)
+                   if (s.electionAddr == null) // 验证投票服务器有没有选举地址
                        throw new IllegalArgumentException(
                                "Missing election port for server: " + s.id);
                }

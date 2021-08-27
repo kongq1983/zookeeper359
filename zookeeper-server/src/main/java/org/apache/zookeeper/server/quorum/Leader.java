@@ -244,7 +244,7 @@ public class Leader {
                 }
             } else {
                 if (self.getQuorumListenOnAllIPs()) {
-                    ss = new ServerSocket(self.getQuorumAddress().getPort());
+                    ss = new ServerSocket(self.getQuorumAddress().getPort()); // todo 数据同步 端口绑定
                 } else {
                     ss = new ServerSocket();
                 }
@@ -566,7 +566,7 @@ public class Leader {
                  return;
              }
 
-             startZkServer();
+             startZkServer(); // todo 启动zkserver
 
             /**
              * WARNING: do not use this for anything other than QA testing
@@ -605,7 +605,7 @@ public class Leader {
             // If not null then shutdown this leader
             String shutdownMessage = null;
 
-            while (true) {
+            while (true) { // 死循环
                 synchronized (this) {
                     long start = Time.currentElapsedTime();
                     long cur = start;

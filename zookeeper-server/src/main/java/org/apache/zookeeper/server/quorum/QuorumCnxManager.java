@@ -370,7 +370,7 @@ public class QuorumCnxManager {
             } else {
                 sock = SOCKET_FACTORY.get();
                 setSockOpts(sock);
-                sock.connect(electionAddr, cnxTO); // todo 建立连接
+                sock.connect(electionAddr, cnxTO); // todo 和 electionAddr 先建立连接  后面会根据sid比较 如果小的 会断开连接
             }
             LOG.debug("Connected to server " + sid);
         } catch (X509Exception e) {
@@ -686,7 +686,7 @@ public class QuorumCnxManager {
      *  @return boolean success indication
      */
     synchronized private boolean connectOne(long sid, InetSocketAddress electionAddr){
-        if (senderWorkerMap.get(sid) != null) {
+        if (senderWorkerMap.get(sid) != null) { // startConnection 有可能放进去
             LOG.debug("There is a connection already for server " + sid);
             return true;
         }

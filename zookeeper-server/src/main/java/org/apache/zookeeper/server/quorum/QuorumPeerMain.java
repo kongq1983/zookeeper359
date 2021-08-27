@@ -143,7 +143,7 @@ public class QuorumPeerMain {
           ServerCnxnFactory cnxnFactory = null;
           ServerCnxnFactory secureCnxnFactory = null;
           // 普通的zookeeper
-          if (config.getClientPortAddress() != null) {
+          if (config.getClientPortAddress() != null) { // 设置客户端端口 2181
               cnxnFactory = ServerCnxnFactory.createFactory();
               cnxnFactory.configure(config.getClientPortAddress(),
                       config.getMaxClientCnxns(),

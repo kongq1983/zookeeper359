@@ -130,7 +130,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
      */
     private ZKDatabase zkDb;
 
-    public static final class AddressTuple {
+    public static final class AddressTuple { /**  addr = quorumAddr*/
         public final InetSocketAddress quorumAddr;
         public final InetSocketAddress electionAddr;
         public final InetSocketAddress clientAddr;
@@ -142,11 +142,11 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         }
     }
 
-    public static class QuorumServer {
+    public static class QuorumServer { /** 配置文件第1个端口  */
         public InetSocketAddress addr = null;
-
+        /** 配置文件第2个端口  选举端口  */
         public InetSocketAddress electionAddr = null;
-
+        /** 默认2181端口  */
         public InetSocketAddress clientAddr = null;
 
         public long id;
@@ -218,7 +218,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
 
         private static final String wrongFormat = " does not have the form server_config or server_config;client_config"+
         " where server_config is host:port:port or host:port:port:type and client_config is port or host:port";
-
+        // todo 解析集群机器
         public QuorumServer(long sid, String addressStr) throws ConfigException {
             // LOG.warn("sid = " + sid + " addressStr = " + addressStr);
             this.id = sid;
@@ -250,13 +250,13 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             // server_config should be either host:port:port or host:port:port:type
             try {
                 addr = new InetSocketAddress(serverParts[0],
-                        Integer.parseInt(serverParts[1]));
+                        Integer.parseInt(serverParts[1])); // ip:2888
             } catch (NumberFormatException e) {
                 throw new ConfigException("Address unresolved: " + serverParts[0] + ":" + serverParts[1]);
             }
             try {
                 electionAddr = new InetSocketAddress(serverParts[0],
-                        Integer.parseInt(serverParts[2]));
+                        Integer.parseInt(serverParts[2])); // ip: 3888
             } catch (NumberFormatException e) {
                 throw new ConfigException("Address unresolved: " + serverParts[0] + ":" + serverParts[2]);
             }
@@ -1168,13 +1168,13 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             jmxQuorumBean = null;
         }
 
-        try {
+        try {  // todo 各角色 重要 ************************ important
             /*
              * Main loop
              */
             while (running) {
                 switch (getPeerState()) {
-                case LOOKING:
+                case LOOKING: // 进入选举
                     LOG.info("LOOKING");
 
                     if (Boolean.getBoolean("readonlymode.enabled")) {
@@ -1229,7 +1229,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                                shuttingDownLE = false;
                                startLeaderElection(); // todo 重新选举
                                }
-                            setCurrentVote(makeLEStrategy().lookForLeader());
+                            setCurrentVote(makeLEStrategy().lookForLeader());  // 新的节点 先进入选举
                         } catch (Exception e) {
                             LOG.warn("Unexpected exception", e);
                             setPeerState(ServerState.LOOKING);
@@ -1240,7 +1240,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                     try {
                         LOG.info("OBSERVING");
                         setObserver(makeObserver(logFactory));
-                        observer.observeLeader();
+                        observer.observeLeader(); // 这里一直死循环  退出就是和Leader断开连接
                     } catch (Exception e) {
                         LOG.warn("Unexpected exception",e );
                     } finally {
@@ -1249,24 +1249,24 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                        updateServerState();
                     }
                     break;
-                case FOLLOWING:
+                case FOLLOWING:  // 和Leader断开连接
                     try {
                        LOG.info("FOLLOWING");
                         setFollower(makeFollower(logFactory));
-                        follower.followLeader();
+                        follower.followLeader();  // 这里一直死循环  退出就是和Leader断开连接
                     } catch (Exception e) {
                        LOG.warn("Unexpected exception",e);
                     } finally {
                        follower.shutdown();
                        setFollower(null);
-                       updateServerState(); //设置LOOKING
+                       updateServerState(); //设置LOOKING   重新选举
                     }
                     break;
                 case LEADING:
                     LOG.info("LEADING");
                     try {
                         setLeader(makeLeader(logFactory));
-                        leader.lead();
+                        leader.lead(); // 处理leader业务  死循环 退出这里 代表Leader挂了
                         setLeader(null);
                     } catch (Exception e) {
                         LOG.warn("Unexpected exception",e);
@@ -1296,7 +1296,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             jmxRemotePeerBean = null;
         }
     }
-
+    // todo  修改服务状态
     private synchronized void updateServerState(){
        if (!reconfigFlag) {
            setPeerState(ServerState.LOOKING);
@@ -1668,7 +1668,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                 QuorumPeerConfig.deleteFile(getNextDynamicConfigFilename());
             }
             QuorumServer qs = qv.getAllMembers().get(getId());
-            if (qs != null) {
+            if (qs != null) { // todo 设置集群通信端口
                 setAddrs(qs.addr, qs.electionAddr, qs.clientAddr);
             }
             return prevQV;

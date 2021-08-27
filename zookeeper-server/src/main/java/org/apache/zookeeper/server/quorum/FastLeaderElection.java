@@ -331,7 +331,7 @@ public class FastLeaderElection implements Election {
                          * If it is from a non-voting server (such as an observer or
                          * a non-voting follower), respond right away. 非投票服务器 比如OBSERVER
                          */
-                        if(!validVoter(response.sid)) { // 无投票权
+                        if(!validVoter(response.sid)) { // 无投票权  把自己的票给对方
                             Vote current = self.getCurrentVote();
                             QuorumVerifier qv = self.getQuorumVerifier();
                             ToSend notmsg = new ToSend(ToSend.mType.notification,
@@ -389,7 +389,7 @@ public class FastLeaderElection implements Election {
                              * If this server is looking, then send proposed leader
                              */
 
-                            if(self.getPeerState() == QuorumPeer.ServerState.LOOKING){  // 当前服务器是否LOOKING 当前服务器也正在选主
+                            if(self.getPeerState() == QuorumPeer.ServerState.LOOKING){  // 当前服务器是否LOOKING 当前服务器也正在选主  这里一般是最初 或者leader挂了
                                 recvqueue.offer(n); //把收到的消息加入队列
 
                                 /*
@@ -399,7 +399,7 @@ public class FastLeaderElection implements Election {
                                  */
                                 if((ackstate == QuorumPeer.ServerState.LOOKING)  // 源服务器是LOOKING
                                         && (n.electionEpoch < logicalclock.get())){ // 源服务器的epoch < 当前服务器的epoch
-                                    Vote v = getVote();
+                                    Vote v = getVote(); // 自己投票
                                     QuorumVerifier qv = self.getQuorumVerifier();
                                     ToSend notmsg = new ToSend(ToSend.mType.notification, // 通知
                                             v.getId(),
@@ -411,12 +411,12 @@ public class FastLeaderElection implements Election {
                                             qv.toString().getBytes());
                                     sendqueue.offer(notmsg);  // 把自己的选票放入sendqueue
                                 }
-                            } else {
+                            } else {  // 这个一般是已有集群  新加入节点
                                 /*
                                  * If this server is not looking, but the one that sent the ack
                                  * is looking, then send back what it believes to be the leader.
                                  */
-                                Vote current = self.getCurrentVote(); // 获取当前Leader
+                                Vote current = self.getCurrentVote(); // 获取当前Leader 当前Leader票
                                 if(ackstate == QuorumPeer.ServerState.LOOKING){ // 源服务器是LOOKING
                                     if(LOG.isDebugEnabled()){
                                         LOG.debug("Sending new notification. My id ={} recipient={} zxid=0x{} leader={} config version = {}",
@@ -430,11 +430,11 @@ public class FastLeaderElection implements Election {
                                     QuorumVerifier qv = self.getQuorumVerifier();
                                     ToSend notmsg = new ToSend(
                                             ToSend.mType.notification,
-                                            current.getId(),
+                                            current.getId(), // leader sid
                                             current.getZxid(),
                                             current.getElectionEpoch(),
                                             self.getPeerState(),
-                                            response.sid,
+                                            response.sid,  // 对方服务器id
                                             current.getPeerEpoch(),
                                             qv.toString().getBytes());
                                     sendqueue.offer(notmsg);
@@ -492,7 +492,7 @@ public class FastLeaderElection implements Election {
                                                     m.peerEpoch,
                                                     m.configData);
 
-                manager.toSend(m.sid, requestBuffer);
+                manager.toSend(m.sid, requestBuffer); // sid : 对方服务器id  Leader  Follow  Looking   当期机器是Follow  则sid是Looking的sid leader是Leader的sid
 
             }
         }
@@ -978,7 +978,7 @@ public class FastLeaderElection implements Election {
 
                         // don't care about the version if it's in LOOKING state 收到选票
                         recvset.put(n.sid, new Vote(n.leader, n.zxid, n.electionEpoch, n.peerEpoch));
-
+                        // 统计投票
                         if (termPredicate(recvset,
                                 new Vote(proposedLeader, proposedZxid,
                                         logicalclock.get(), proposedEpoch))) {
