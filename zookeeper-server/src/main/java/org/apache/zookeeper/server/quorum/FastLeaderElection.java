@@ -742,16 +742,16 @@ public class FastLeaderElection implements Election {
      * @param vote
      *            Identifier of the vote received last
      */
-    protected boolean termPredicate(Map<Long, Vote> votes, Vote vote) {
-        SyncedLearnerTracker voteSet = new SyncedLearnerTracker();
-        voteSet.addQuorumVerifier(self.getQuorumVerifier());
+    protected boolean termPredicate(Map<Long, Vote> votes, Vote vote) { // votes:表示收到的外部选票的集合  vote:表示当前服务器的选票
+        SyncedLearnerTracker voteSet = new SyncedLearnerTracker(); // 初始化SyncedLearnerTracker
+        voteSet.addQuorumVerifier(self.getQuorumVerifier()); // 往对象里加QuorumVerifier，实际上一般只有一个QuorumMaj
         if (self.getLastSeenQuorumVerifier() != null
                 && self.getLastSeenQuorumVerifier().getVersion() > self
                         .getQuorumVerifier().getVersion()) {
             voteSet.addQuorumVerifier(self.getLastSeenQuorumVerifier());
         }
 
-        /*
+        /*  //对选票进行归纳，就是把所有选票数据中和当前节点的票据相同的票据进行统计
          * First make the views consistent. Sometimes peers will have different
          * zxids for a server depending on timing.
          */
@@ -761,7 +761,7 @@ public class FastLeaderElection implements Election {
             }
         }
 
-        return voteSet.hasAllQuorums(); // 是否投票完成了
+        return voteSet.hasAllQuorums(); // 是否投票完成了  调用voteSet.hasAllQuorums()，若所有添加的QuorumVerifier都判断voteSet通过要求，则返回true。实际上只有QuorumMaj在判断。
     }
 
     /**
@@ -902,7 +902,7 @@ public class FastLeaderElection implements Election {
 
             LOG.info("New election. My id =  " + self.getId() +
                     ", proposed zxid=0x" + Long.toHexString(proposedZxid));
-            sendNotifications(); // todo 推举自己成为leader的票据发送给集群
+            sendNotifications(); // todo 给所有投票机器发送投给自己的票 - 推举自己成为leader的票据发送给集群
 
             /* todo 收到选票
              * Loop in which we exchange notifications until we find a leader
@@ -1039,7 +1039,7 @@ public class FastLeaderElection implements Election {
                                 n.zxid, n.electionEpoch, n.peerEpoch, n.state));
                         if (termPredicate(outofelection, new Vote(n.version, n.leader,
                                 n.zxid, n.electionEpoch, n.peerEpoch, n.state))
-                                && checkLeader(outofelection, n.leader, n.electionEpoch)) {
+                                && checkLeader(outofelection, n.leader, n.electionEpoch)) { // 超过半数通过
                             synchronized(this){
                                 logicalclock.set(n.electionEpoch);
                                 self.setPeerState((n.leader == self.getId()) ?

@@ -525,7 +525,7 @@ public class Learner {
                     }
 
                     break;                
-                case Leader.UPTODATE:
+                case Leader.UPTODATE: // todo follower 在learner中处理UPTODATE
                     LOG.info("Learner received UPTODATE message");                                      
                     if (newLeaderQV!=null) {
                        boolean majorChange =
@@ -566,7 +566,7 @@ public class Learner {
                 }
             }
         }
-        ack.setZxid(ZxidUtils.makeZxid(newEpoch, 0));
+        ack.setZxid(ZxidUtils.makeZxid(newEpoch, 0)); // 从0开始
         writePacket(ack, true);
         sock.setSoTimeout(self.tickTime * self.syncLimit);
         zk.startup();

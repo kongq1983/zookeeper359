@@ -143,7 +143,7 @@ public class QuorumCnxManager {
     final ConcurrentHashMap<Long, ArrayBlockingQueue<ByteBuffer>> queueSendMap;
     final ConcurrentHashMap<Long, ByteBuffer> lastMessageSent; // 记录最后1次发送数据
 
-    /* 保存选票
+    /* 保存选票(自己投票直接放进来和别的投票)
      * Reception queue
      */
     public final ArrayBlockingQueue<Message> recvQueue;
@@ -318,7 +318,7 @@ public class QuorumCnxManager {
         initializeConnectionExecutor(mySid, quorumCnxnThreadsSize);
 
         // Starts listener thread that waits for connection requests
-        listener = new Listener();
+        listener = new Listener(); // todo 投票监听线程
         listener.setName("QuorumPeerListener");
     }
 
@@ -615,7 +615,7 @@ public class QuorumCnxManager {
              * Now we start a new connection
              */
             LOG.debug("Create new connection to server: {}", sid);
-            closeSocket(sock);
+            closeSocket(sock); // 把小的连接关闭  sid < 本地sid 那只能本机去和他连接
 
             if (electionAddr != null) {
                 connectOne(sid, electionAddr);
@@ -655,7 +655,7 @@ public class QuorumCnxManager {
         /*
          * If sending message to myself, then simply enqueue it (loopback).
          */
-        if (this.mySid == sid) { // //如果是本机
+        if (this.mySid == sid) { // //如果是本机 QuorumCnxManager:658
              b.position(0);
              addToRecvQueue(new Message(b.duplicate(), sid)); // //直接添加到recvQueue中
             /*
@@ -1014,17 +1014,17 @@ public class QuorumCnxManager {
         }
     }
 
-    /** todo 发送选票线程逻辑
+    /** todo 发送选票线程逻辑  大sid的和小的连接
      * Thread to send messages. Instance waits on a queue, and send a message as
      * soon as there is one available. If connection breaks, then opens a new
      * one.
      */
     class SendWorker extends ZooKeeperThread {
-        Long sid;
+        Long sid; // 对方服务器sid，非本机
         Socket sock;
         RecvWorker recvWorker;
         volatile boolean running = true;
-        DataOutputStream dout;
+        DataOutputStream dout; // dout = new DataOutputStream(sock.getOutputStream()); 最终是socket
 
         /**
          * An instance of this thread receives messages to send
@@ -1119,12 +1119,12 @@ public class QuorumCnxManager {
                  * message than that stored in lastMessage. To avoid sending
                  * stale message, we should send the message in the send queue.
                  */
-                ArrayBlockingQueue<ByteBuffer> bq = queueSendMap.get(sid);
+                ArrayBlockingQueue<ByteBuffer> bq = queueSendMap.get(sid); // 投票池
                 if (bq == null || isSendQueueEmpty(bq)) {
                    ByteBuffer b = lastMessageSent.get(sid);
                    if (b != null) {
                        LOG.debug("Attempting to send lastMessage to sid=" + sid);
-                       send(b);
+                       send(b); // 试图发送 该sid的最后1条消息
                    }
                 }
             } catch (IOException e) {
@@ -1148,7 +1148,7 @@ public class QuorumCnxManager {
                         }
 
                         if(b != null){
-                            lastMessageSent.put(sid, b);
+                            lastMessageSent.put(sid, b); // 备份最后1条发送消息 先备份 后发送
                             send(b);
                         }
                     } catch (InterruptedException e) {
@@ -1234,7 +1234,7 @@ public class QuorumCnxManager {
                      */
                     byte[] msgArray = new byte[length];
                     din.readFully(msgArray, 0, length);
-                    ByteBuffer message = ByteBuffer.wrap(msgArray);
+                    ByteBuffer message = ByteBuffer.wrap(msgArray); // QuorumCnxManager.RecvWorker.run :1237
                     addToRecvQueue(new Message(message.duplicate(), sid)); // 收到消息 放到 recvQueue
                 }
             } catch (Exception e) {

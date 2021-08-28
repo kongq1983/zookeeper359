@@ -8,6 +8,8 @@ QuorumCnxManager
 
 # 选主算法
 FastLeaderElection
+# 选主
+lookForLeader
 
 -- FastLeaderElection.Messenger.WorkerReceiver 211
 -- FastLeaderElection.Messenger.WorkerSender  458
@@ -17,3 +19,7 @@ FastLeaderElection
 # Leader
 
 # Follow
+
+
+# 集群解析的配置数据 server.1=ip:port1:port2
+QuorumMaj
