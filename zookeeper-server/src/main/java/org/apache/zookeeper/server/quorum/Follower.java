@@ -74,7 +74,7 @@ public class Follower extends Learner{
         try {
             QuorumServer leaderServer = findLeader();  // 查找leader
             try { // todo leaderServer如果返回null ，会不会报空异常?
-                connectToLeader(leaderServer.addr, leaderServer.hostname); // 和Leader建立连接
+                connectToLeader(leaderServer.addr, leaderServer.hostname); // 和Leader建立连接 leaderServer.addr
                 long newEpochZxid = registerWithLeader(Leader.FOLLOWERINFO);
                 if (self.isReconfigStateChange())
                    throw new Exception("learned about role change");

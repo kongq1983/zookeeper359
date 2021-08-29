@@ -23,3 +23,26 @@ lookForLeader
 
 # 集群解析的配置数据 server.1=ip:port1:port2
 QuorumMaj
+
+----------------------------------------------
+
+NIOServerCnxnFactory
+ServerCnxnFactory
+NettyServerCnxnFactory  服务端入口 start
+NettyServerCnxn
+
+ServerCnxn
+NIOServerCnxn
+NettyServerCnxn
+
+-------------------------------
+
+ZooKeeper  # 客户端启动入口
+ClientCnxn
+ClientCnxnSocketNIO
+
+Watcher
+
+ClientCnxnSocket
+ClientCnxnSocketNIO
+ClientCnxnSocketNetty

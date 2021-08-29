@@ -424,7 +424,7 @@ public class NettyServerCnxn extends ServerCnxn {
         }
     }
 
-    /**
+    /** todo 读取数据
      * Receive a message, which can come from the queued buffer or from a new
      * buffer coming in over the channel. This should only be called from the
      * event loop thread.
@@ -468,7 +468,7 @@ public class NettyServerCnxn extends ServerCnxn {
                                 Long.toHexString(sessionId),
                                 ByteBufUtil.hexDump(Unpooled.wrappedBuffer(dat)));
                     }
-                    if (bb.remaining() == 0) {
+                    if (bb.remaining() == 0) { // 没数据
                         packetReceived();
                         bb.flip();
 

@@ -527,7 +527,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory {
             }
 
             if (key.isReadable() || key.isWritable()) {
-                cnxn.doIO(key);
+                cnxn.doIO(key); // 从网络端口读取数据
 
                 // Check if we shutdown or doIO() closed this connection
                 if (stopped) {

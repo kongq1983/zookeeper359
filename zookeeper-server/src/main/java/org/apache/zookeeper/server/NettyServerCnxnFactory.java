@@ -586,7 +586,7 @@ public class NettyServerCnxnFactory extends ServerCnxnFactory {
     }
     
     @Override
-    public void start() {
+    public void start() { // 入口
         LOG.info("binding to port {}", localAddress);
         parentChannel = bootstrap.bind(localAddress).syncUninterruptibly().channel();
         // Port changes after bind() if the original port was 0, update
@@ -611,7 +611,7 @@ public class NettyServerCnxnFactory extends ServerCnxnFactory {
        }
     }
     
-    @Override
+    @Override // todo startup 入口
     public void startup(ZooKeeperServer zks, boolean startServer)
             throws IOException, InterruptedException {
         start();

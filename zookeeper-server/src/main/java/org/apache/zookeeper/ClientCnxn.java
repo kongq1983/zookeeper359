@@ -404,7 +404,7 @@ public class ClientCnxn {
         this.clientConfig=zooKeeper.getClientConfig();
         initRequestTimeout();
     }
-
+    // todo 启动ClientCnxn 启动sendThread eventThread
     public void start() {
         sendThread.start();
         eventThread.start();
@@ -499,7 +499,7 @@ public class ClientCnxn {
 
         @Override
         @SuppressFBWarnings("JLM_JSR166_UTILCONCURRENT_MONITORENTER")
-        public void run() {
+        public void run() { // todo EventThread run
            try {
               isRunning = true;
               while (true) {
@@ -1115,7 +1115,7 @@ public class ClientCnxn {
         private static final String RETRY_CONN_MSG =
             ", closing socket connection and attempting reconnect";
         @Override
-        public void run() {
+        public void run() { // SendThread的run
             clientCnxnSocket.introduce(this, sessionId, outgoingQueue);
             clientCnxnSocket.updateNow();
             clientCnxnSocket.updateLastSendAndHeard();
@@ -1219,7 +1219,7 @@ public class ClientCnxn {
                         }
                         to = Math.min(to, pingRwTimeout - idlePingRwServer);
                     }
-
+                    // todo SendThread doTransport
                     clientCnxnSocket.doTransport(to, pendingQueue, ClientCnxn.this);
                 } catch (Throwable e) {
                     if (closing) {

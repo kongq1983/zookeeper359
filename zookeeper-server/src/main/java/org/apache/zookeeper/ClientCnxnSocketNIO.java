@@ -251,7 +251,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         }
     }
 
-    /**
+    /** 创建SocketChannel
      * create a socket channel.
      * @return the created socket channel
      * @throws IOException
@@ -265,7 +265,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         return sock;
     }
 
-    /**
+    /** 注册Connect事件
      * register with the selection and connect
      * @param sock the {@link SocketChannel}
      * @param addr the address of remote host
@@ -341,10 +341,10 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         selector.wakeup();
     }
 
-    @Override
+    @Override // todo 客户端连接 重要
     void doTransport(int waitTimeOut, List<Packet> pendingQueue, ClientCnxn cnxn)
             throws IOException, InterruptedException {
-        selector.select(waitTimeOut);
+        selector.select(waitTimeOut); // 这里阻塞  queuePacket packetAdded-wakeupCnxn 那边唤醒  selector.wakeup();
         Set<SelectionKey> selected;
         synchronized (this) {
             selected = selector.selectedKeys();
@@ -352,23 +352,23 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         // Everything below and until we get back to the select is
         // non blocking, so time is effectively a constant. That is
         // Why we just have to do this once, here
-        updateNow();
+        updateNow(); // 记录现在时间点
         for (SelectionKey k : selected) {
             SocketChannel sc = ((SocketChannel) k.channel());
             if ((k.readyOps() & SelectionKey.OP_CONNECT) != 0) {
-                if (sc.finishConnect()) {
+                if (sc.finishConnect()) { // 成功建立连接
                     updateLastSendAndHeard();
                     updateSocketAddresses();
                     sendThread.primeConnection();
                 }
             } else if ((k.readyOps() & (SelectionKey.OP_READ | SelectionKey.OP_WRITE)) != 0) {
-                doIO(pendingQueue, cnxn);
+                doIO(pendingQueue, cnxn); // 读写事件
             }
         }
-        if (sendThread.getZkState().isConnected()) {
+        if (sendThread.getZkState().isConnected()) { // 已经连接
             if (findSendablePacket(outgoingQueue,
                     sendThread.tunnelAuthInProgress()) != null) {
-                enableWrite();
+                enableWrite();  // 确保有写事件SelectionKey.OP_WRITE
             }
         }
         selected.clear();
