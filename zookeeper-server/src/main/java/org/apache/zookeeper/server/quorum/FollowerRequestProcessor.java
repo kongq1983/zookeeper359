@@ -31,7 +31,7 @@ import org.apache.zookeeper.txn.ErrorTxn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
+/** Follower的第一个请求处理器 主要工作是识别出当前请求是否是事务请求。如果是事务请求，那么Follower就会将事务请求转发Leader服务器
  * This RequestProcessor forwards any requests that modify the state of the
  * system to the Leader.
  */

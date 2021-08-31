@@ -132,7 +132,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         LOG.info(String.format("PrepRequestProcessor (sid:%d) started, reconfigEnabled=%s", zks.getServerId(), zks.reconfigEnabled));
         try {
             while (true) {
-                Request request = submittedRequests.take();
+                Request request = submittedRequests.take(); // todo 从submittedRequests获取 Request
                 long traceMask = ZooTrace.CLIENT_REQUEST_TRACE_MASK;
                 if (request.type == OpCode.ping) { // ping
                     traceMask = ZooTrace.CLIENT_PING_TRACE_MASK;
@@ -143,7 +143,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 if (Request.requestOfDeath == request) {
                     break;
                 }
-                pRequest(request);
+                pRequest(request); // todo 重要
             }
         } catch (RequestProcessorException e) {
             if (e.getCause() instanceof XidRolloverException) {
@@ -902,7 +902,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 request.setTxn(new ErrorTxn(Code.MARSHALLINGERROR.intValue()));
             }
         }
-        request.zxid = zks.getZxid();
+        request.zxid = zks.getZxid();  // todo 获得新的zxid
         nextProcessor.processRequest(request);
     }
 
@@ -999,7 +999,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         }
         return rv;
     }
-
+    /**  丢到 submittedRequests */
     public void processRequest(Request request) {
         submittedRequests.add(request);
     }

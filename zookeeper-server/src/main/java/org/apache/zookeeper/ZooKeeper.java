@@ -550,7 +550,7 @@ public class ZooKeeper implements AutoCloseable {
 
         abstract protected Map<String, Set<Watcher>> getWatches(int rc);
 
-        /**
+        /** todo watch 注册
          * Register the watcher with the set of watches on path.
          * @param rc the result code of the operation that attempted to
          * add the watch on the path.

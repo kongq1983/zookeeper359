@@ -777,7 +777,7 @@ public class Leader {
        // in order to be committed, a proposal must be accepted by a quorum.
        //
        // getting a quorum from all necessary configurations.
-        if (!p.hasAllQuorums()) {
+        if (!p.hasAllQuorums()) { // todo 是否超过半数
            return false;
         }
 
@@ -824,10 +824,10 @@ public class Leader {
             informAndActivate(p, designatedLeader);
             //turnOffFollowers();
         } else {
-            commit(zxid); // 给所有follower发送commit消息
-            inform(p); // 发送给所有observers
+            commit(zxid); // todo 两阶段 给所有follower发送commit消息
+            inform(p); // todo 两阶段 发送给所有observers
         }
-        zk.commitProcessor.commit(p.request); // leader自己commit
+        zk.commitProcessor.commit(p.request); // todo  leader自己commit leader提交
         if(pendingSyncs.containsKey(zxid)){
             for(LearnerSyncRequest r: pendingSyncs.remove(zxid)) {
                 sendSync(r);
@@ -889,13 +889,13 @@ public class Leader {
             return;
         }
 
-        p.addAck(sid);
+        p.addAck(sid); // todo 放ack
         /*if (LOG.isDebugEnabled()) {
             LOG.debug("Count for zxid: 0x{} is {}",
                     Long.toHexString(zxid), p.ackSet.size());
         }*/
 
-        boolean hasCommitted = tryToCommit(p, zxid, followerAddr);
+        boolean hasCommitted = tryToCommit(p, zxid, followerAddr); //todo 是否超过半数ack
 
         // If p is a reconfiguration, multiple other operations may be ready to be committed,
         // since operations wait for different sets of acks.
@@ -981,7 +981,7 @@ public class Leader {
         }
     }
 
-    /**
+    /** 给所有的Follower发送 queuedPackets.add(p);
      * send a packet to all the followers ready to follow
      *
      * @param qp

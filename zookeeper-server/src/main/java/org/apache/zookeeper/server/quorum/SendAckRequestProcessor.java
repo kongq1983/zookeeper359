@@ -40,7 +40,7 @@ public class SendAckRequestProcessor implements RequestProcessor, Flushable {
     public void processRequest(Request si) {
         if(si.type != OpCode.sync){
             QuorumPacket qp = new QuorumPacket(Leader.ACK, si.getHdr().getZxid(), null,
-                null);
+                null); // 给leader发送ack
             try {
                 learner.writePacket(qp, false);
             } catch (IOException e) {

@@ -124,7 +124,7 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                         if (logCount > (snapCount / 2 + randRoll)) {
                             randRoll = r.nextInt(snapCount/2);
                             // roll the log
-                            zks.getZKDatabase().rollLog();
+                            zks.getZKDatabase().rollLog(); // todo 写文件
                             // take a snapshot
                             if (snapInProcess != null && snapInProcess.isAlive()) {
                                 LOG.warn("Too busy to snap, skipping");
@@ -148,7 +148,7 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
                         // flushes (writes), then just pass this to the next
                         // processor
                         if (nextProcessor != null) {
-                            nextProcessor.processRequest(si);
+                            nextProcessor.processRequest(si); // todo调用下一个处理器
                             if (nextProcessor instanceof Flushable) {
                                 ((Flushable)nextProcessor).flush();
                             }
@@ -175,11 +175,11 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements
         if (toFlush.isEmpty())
             return;
 
-        zks.getZKDatabase().commit();
+        zks.getZKDatabase().commit(); // todo 持久化日志
         while (!toFlush.isEmpty()) {
             Request i = toFlush.remove();
             if (nextProcessor != null) {
-                nextProcessor.processRequest(i);
+                nextProcessor.processRequest(i); // 下一个Processor
             }
         }
         if (nextProcessor != null && nextProcessor instanceof Flushable) {

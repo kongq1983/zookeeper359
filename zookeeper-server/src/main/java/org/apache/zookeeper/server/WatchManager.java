@@ -33,7 +33,7 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
+/** todo watch manager 管理
  * This class manages watches. It allows watches to be associated with a string
  * and removes watchers and their watches in addition to managing triggers.
  */
@@ -99,7 +99,7 @@ class WatchManager {
                 KeeperState.SyncConnected, path);
         HashSet<Watcher> watchers;
         synchronized (this) {
-            watchers = watchTable.remove(path);
+            watchers = watchTable.remove(path); // todo  监听是一次性
             if (watchers == null || watchers.isEmpty()) {
                 if (LOG.isTraceEnabled()) {
                     ZooTrace.logTraceMessage(LOG,

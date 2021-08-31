@@ -828,8 +828,8 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         try {
             touch(si.cnxn);
             boolean validpacket = Request.isValid(si.type);
-            if (validpacket) {
-                firstProcessor.processRequest(si);
+            if (validpacket) { // firstProcessor = LeaderRequestProcessor
+                firstProcessor.processRequest(si); // todo 关键代码 LeaderZooKeeperServer.setupRequestProcessors
                 if (si.cnxn != null) {
                     incInProcess();
                 }

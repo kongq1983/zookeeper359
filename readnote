@@ -46,3 +46,9 @@ Watcher
 ClientCnxnSocket
 ClientCnxnSocketNIO
 ClientCnxnSocketNetty
+
+
+----------------------------
+watch机制
+WatchManager
+Zookeeper.WatchRegistration

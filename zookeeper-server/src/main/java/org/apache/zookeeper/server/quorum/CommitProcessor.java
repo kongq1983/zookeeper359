@@ -163,7 +163,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
                         !stopped &&
                         ((queuedRequests.isEmpty() || isWaitingForCommit() || isProcessingCommit()) &&
                          (committedRequests.isEmpty() || isProcessingRequest()))) {
-                        wait();
+                        wait();// wait 通过notifyAll 后执行processCommitted
                     }
                 }
 
@@ -187,7 +187,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
                  * came in for the pending request. We can only commit a
                  * request when there is no other request being processed.
                  */
-                processCommitted();
+                processCommitted(); // todo  leader提交
             }
         } catch (Throwable e) {
             handleException(this.getName(), e);
@@ -195,7 +195,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
         LOG.info("CommitProcessor exited loop!");
     }
 
-    /*
+    /* 叫各个follower提交后 执行
      * Separated this method from the main run loop
      * for test purposes (ZOOKEEPER-1863)
      */
@@ -213,7 +213,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
             if ( !isWaitingForCommit() && !queuedRequests.isEmpty()) {
                 return;
             }
-            request = committedRequests.poll();
+            request = committedRequests.poll(); // todo 从队列拿Request
 
             /*
              * We match with nextPending so that we can move to the
@@ -235,7 +235,7 @@ public class CommitProcessor extends ZooKeeperCriticalThread implements
                 // nextProcessor returns.
                 currentlyCommitting.set(pending);
                 nextPending.set(null);
-                sendToNextProcessor(pending);
+                sendToNextProcessor(pending); // todo 关键
             } else {
                 // this request came from someone else so just
                 // send the commit packet
