@@ -1518,9 +1518,9 @@ public class ClientCnxn {
             throws InterruptedException {
         ReplyHeader r = new ReplyHeader();
         Packet packet = queuePacket(h, r, request, response, null, null, null,
-                null, watchRegistration, watchDeregistration);
+                null, watchRegistration, watchDeregistration); // 数据包
         synchronized (packet) {
-            if (requestTimeout > 0) {
+            if (requestTimeout > 0) { // 等待当前数据包结束
                 // Wait for request completion with timeout
                 waitForPacketFinish(r, packet);
             } else {
@@ -1610,10 +1610,10 @@ public class ClientCnxn {
                 if (h.getType() == OpCode.closeSession) {
                     closing = true;
                 }
-                outgoingQueue.add(packet);
+                outgoingQueue.add(packet); // todo  把发送数据包放到outgoingQueue
             }
         }
-        sendThread.getClientCnxnSocket().packetAdded();
+        sendThread.getClientCnxnSocket().packetAdded(); // todo 唤醒 selector.wakeup() 告诉sendThread有需要发送的数据包
         return packet;
     }
 

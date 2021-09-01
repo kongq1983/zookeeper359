@@ -1976,7 +1976,7 @@ public class ZooKeeper implements AutoCloseable {
                 serverPath, ctx, null);
     }
 
-    /**
+    /** todo exists
      * Return the stat of the node of the given path. Return null if no such a
      * node exists.
      * <p>
@@ -2001,19 +2001,19 @@ public class ZooKeeper implements AutoCloseable {
 
         // the watch contains the un-chroot path
         WatchRegistration wcb = null;
-        if (watcher != null) {
-            wcb = new ExistsWatchRegistration(watcher, clientPath);
+        if (watcher != null) { // todo watcher!=null
+            wcb = new ExistsWatchRegistration(watcher, clientPath); //包装ExistsWatchRegistration
         }
 
         final String serverPath = prependChroot(clientPath);
 
-        RequestHeader h = new RequestHeader();
-        h.setType(ZooDefs.OpCode.exists);
-        ExistsRequest request = new ExistsRequest();
+        RequestHeader h = new RequestHeader(); // 请求头
+        h.setType(ZooDefs.OpCode.exists); //exits 操作类型
+        ExistsRequest request = new ExistsRequest();  // 请求体
         request.setPath(serverPath);
-        request.setWatch(watcher != null);
+        request.setWatch(watcher != null); // 是否有注册监听
         SetDataResponse response = new SetDataResponse();
-        ReplyHeader r = cnxn.submitRequest(h, request, response, wcb);
+        ReplyHeader r = cnxn.submitRequest(h, request, response, wcb); // 提交
         if (r.getErr() != 0) {
             if (r.getErr() == KeeperException.Code.NONODE.intValue()) {
                 return null;
