@@ -125,7 +125,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     static final private long superSecret = 0XB3415C00L;
 
     private final AtomicInteger requestsInProcess = new AtomicInteger(0);
-    final Deque<ChangeRecord> outstandingChanges = new ArrayDeque<>();
+    final Deque<ChangeRecord> outstandingChanges = new ArrayDeque<>(); //  todo outstandingChanges 用于存放刚进行更改还没有同步到ZKDatabase中的节点信息
     // this data structure must be accessed under the outstandingChanges lock
     final HashMap<String, ChangeRecord> outstandingChangesForPath =
         new HashMap<String, ChangeRecord>();
@@ -462,7 +462,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             zkDb = new ZKDatabase(this.txnLogFactory);
         }
         if (!zkDb.isInitialized()) {
-            loadData();
+            loadData(); // todo 加载DataTree数据
         }
     }
 
@@ -1265,7 +1265,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         } else {
             rc = new ProcessTxnResult();
         }
-        if (opCode == OpCode.createSession) {
+        if (opCode == OpCode.createSession) { // createSession = -10
             if (hdr != null && txn instanceof CreateSessionTxn) {
                 CreateSessionTxn cst = (CreateSessionTxn) txn;
                 sessionTracker.addGlobalSession(sessionId, cst.getTimeOut());

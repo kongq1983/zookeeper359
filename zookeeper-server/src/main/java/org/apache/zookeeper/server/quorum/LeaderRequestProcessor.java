@@ -28,7 +28,7 @@ import org.apache.zookeeper.txn.ErrorTxn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
+/**  LeaderRequestProcessor 仅起到一个流程转发的作用。所以，起点是 PrepRequestProcessor
  * Responsible for performing local session upgrade. Only request submitted
  * directly to the leader should go through this processor.
  */
@@ -68,7 +68,7 @@ public class LeaderRequestProcessor implements RequestProcessor {
         if (upgradeRequest != null) {
             nextProcessor.processRequest(upgradeRequest);
         }
-
+        // nextProcessor = PrepRequestProcessor
         nextProcessor.processRequest(request);
     }
 

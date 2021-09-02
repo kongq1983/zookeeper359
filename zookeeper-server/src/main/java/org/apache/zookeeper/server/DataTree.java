@@ -181,7 +181,7 @@ public class DataTree {
         return dataWatches.size() + childWatches.size();
     }
 
-    public int getEphemeralsCount() {
+    public int getEphemeralsCount() { // 临时节点数量
         int result = 0;
         for (HashSet<String> set : ephemerals.values()) {
             result += set.size();
@@ -226,16 +226,16 @@ public class DataTree {
     public DataTree() {
         /* Rather than fight it, let root have an alias */
         nodes.put("", root);
-        nodes.put(rootZookeeper, root); // /
+        nodes.put(rootZookeeper, root); // / 根节点
 
         /** add the proc node and quota node */
-        root.addChild(procChildZookeeper);
+        root.addChild(procChildZookeeper); // /zookeeper
         nodes.put(procZookeeper, procDataNode);
 
-        procDataNode.addChild(quotaChildZookeeper);
+        procDataNode.addChild(quotaChildZookeeper); // /zookeeper/quota
         nodes.put(quotaZookeeper, quotaDataNode);
 
-        addConfigNode();
+        addConfigNode(); // /zookeeper/config
     }
 
     /**
@@ -243,14 +243,14 @@ public class DataTree {
      * zookeeper
      */
     public void addConfigNode() {
-        DataNode zookeeperZnode = nodes.get(procZookeeper);
+        DataNode zookeeperZnode = nodes.get(procZookeeper); // /zookeeper
         if (zookeeperZnode != null) { // should always be the case
-            zookeeperZnode.addChild(configChildZookeeper);
+            zookeeperZnode.addChild(configChildZookeeper); // /zookeeper/config
         } else {
             assert false : "There's no /zookeeper znode - this should never happen.";
         }
 
-        nodes.put(configZookeeper, new DataNode(new byte[0], -1L, new StatPersisted()));
+        nodes.put(configZookeeper, new DataNode(new byte[0], -1L, new StatPersisted())); // /zookeeper/config
         try {
             // Reconfig node is access controlled by default (ZOOKEEPER-2014).
             setACL(configZookeeper, ZooDefs.Ids.READ_ACL_UNSAFE, -1);
@@ -260,7 +260,7 @@ public class DataTree {
         }
     }
 
-    /**
+    /** 是否是特殊节点  zookeeper初始化节点
      * is the path one of the special paths owned by zookeeper.
      *
      * @param path
@@ -449,14 +449,14 @@ public class DataTree {
         stat.setVersion(0);
         stat.setAversion(0);
         stat.setEphemeralOwner(ephemeralOwner);
-        DataNode parent = nodes.get(parentName);
-        if (parent == null) {
-            throw new KeeperException.NoNodeException();
+        DataNode parent = nodes.get(parentName); // 获取父节点
+        if (parent == null) { // 获取不到会报错
+            throw new KeeperException.NoNodeException(); // 报错: Node does not exist
         }
         synchronized (parent) {
             Set<String> children = parent.getChildren();
-            if (children.contains(childName)) {
-                throw new KeeperException.NodeExistsException();
+            if (children.contains(childName)) { // 已经存在子节点
+                throw new KeeperException.NodeExistsException(); // 存在报错: Node already exists
             }
 
             if (parentCVersion == -1) {
@@ -466,22 +466,22 @@ public class DataTree {
             parent.stat.setCversion(parentCVersion);
             parent.stat.setPzxid(zxid);
             Long longval = aclCache.convertAcls(acl);
-            DataNode child = new DataNode(data, longval, stat);
-            parent.addChild(childName);
-            nodes.put(path, child);
+            DataNode child = new DataNode(data, longval, stat); // 创建1个子节点
+            parent.addChild(childName); // 添加到父节点队列上
+            nodes.put(path, child); // 把该节点放到nodes上  不管是否临时节点 都放进去
             EphemeralType ephemeralType = EphemeralType.get(ephemeralOwner);
             if (ephemeralType == EphemeralType.CONTAINER) {
                 containers.add(path);
             } else if (ephemeralType == EphemeralType.TTL) {
                 ttls.add(path);
-            } else if (ephemeralOwner != 0) {
+            } else if (ephemeralOwner != 0) { // 临时节点
                 HashSet<String> list = ephemerals.get(ephemeralOwner);
                 if (list == null) {
                     list = new HashSet<String>();
                     ephemerals.put(ephemeralOwner, list);
                 }
                 synchronized (list) {
-                    list.add(path);
+                    list.add(path); // todo 添加到临时节点列表
                 }
             }
             if (outputStat != null) {
@@ -489,7 +489,7 @@ public class DataTree {
             }
         }
         // now check if its one of the zookeeper node child
-        if (parentName.startsWith(quotaZookeeper)) {
+        if (parentName.startsWith(quotaZookeeper)) { //父节点是/zookeeper/quota
             // now check if its the limit node
             if (Quotas.limitNode.equals(childName)) {
                 // this is the limit node
@@ -1042,11 +1042,11 @@ public class DataTree {
         // so there is no need for synchronization. The list is not
         // changed here. Only create and delete change the list which
         // are again called from FinalRequestProcessor in sequence.
-        HashSet<String> list = ephemerals.remove(session);
+        HashSet<String> list = ephemerals.remove(session); // todo 临时节点删除  临时节点不能有子节点  1个session有多个临时节点
         if (list != null) {
             for (String path : list) {
                 try {
-                    deleteNode(path, zxid);
+                    deleteNode(path, zxid); // 删除节点
                     if (LOG.isDebugEnabled()) {
                         LOG
                                 .debug("Deleting ephemeral node " + path

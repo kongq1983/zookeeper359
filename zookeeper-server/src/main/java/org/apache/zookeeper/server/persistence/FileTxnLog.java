@@ -48,7 +48,7 @@ import org.apache.zookeeper.txn.TxnHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
+/** FileTxnLog是Transaction 日志的工具类，通过txnLog.read 拿到Snapshot文件发生后的Transaction 日志，通过processTransaction将事务应用到DataTree上，还原初态
  * This class implements the TxnLog interface. It provides api's
  * to access the txnlogs and add entries to it.
  * <p>

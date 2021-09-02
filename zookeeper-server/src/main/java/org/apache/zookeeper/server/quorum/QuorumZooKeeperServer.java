@@ -65,7 +65,7 @@ public abstract class QuorumZooKeeperServer extends ZooKeeperServer {
         // or observer request processor), which is unique to a learner.
         // So will not be called concurrently by two threads.
         if ((request.type != OpCode.create && request.type != OpCode.create2 && request.type != OpCode.multi) ||
-            !upgradeableSessionTracker.isLocalSession(request.sessionId)) {
+            !upgradeableSessionTracker.isLocalSession(request.sessionId)) { // todo sessionsById 中是否存在sessionId
             return null;
         }
 

@@ -132,7 +132,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         LOG.info(String.format("PrepRequestProcessor (sid:%d) started, reconfigEnabled=%s", zks.getServerId(), zks.reconfigEnabled));
         try {
             while (true) {
-                Request request = submittedRequests.take(); // todo 从submittedRequests获取 Request
+                Request request = submittedRequests.take(); // todo 从submittedRequests获取 Request  processRequest(request)放进去的 : 1003
                 long traceMask = ZooTrace.CLIENT_REQUEST_TRACE_MASK;
                 if (request.type == OpCode.ping) { // ping
                     traceMask = ZooTrace.CLIENT_PING_TRACE_MASK;
@@ -384,7 +384,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 request.setTxn(new DeleteTxn(path));
                 parentRecord = parentRecord.duplicate(request.getHdr().getZxid());
                 parentRecord.childCount--;
-                addChangeRecord(parentRecord);
+                addChangeRecord(parentRecord); // 添加事件监听 outstandingChanges
                 addChangeRecord(new ChangeRecord(request.getHdr().getZxid(), path, null, -1, null));
                 break;
             }
@@ -661,8 +661,8 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
 
         checkACL(zks, parentRecord.acl, ZooDefs.Perms.CREATE, request.authInfo);
         int parentCVersion = parentRecord.stat.getCversion();
-        if (createMode.isSequential()) {
-            path = path + String.format(Locale.ENGLISH, "%010d", parentCVersion);
+        if (createMode.isSequential()) { // 顺序节点
+            path = path + String.format(Locale.ENGLISH, "%010d", parentCVersion); // path+10个0
         }
         validatePath(path, request.sessionId);
         try {

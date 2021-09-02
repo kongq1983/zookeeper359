@@ -63,7 +63,7 @@ public class FileSnap implements SnapShot {
         this.snapDir = snapDir;
     }
 
-    /**
+    /** todo 恢复数据
      * deserialize a data tree from the most recent snapshot
      * @return the zxid of the snapshot
      */
@@ -72,7 +72,7 @@ public class FileSnap implements SnapShot {
         // we run through 100 snapshots (not all of them)
         // if we cannot get it running within 100 snapshots
         // we should  give up
-        List<File> snapList = findNValidSnapshots(100);
+        List<File> snapList = findNValidSnapshots(100); //查找最近100个文件
         if (snapList.size() == 0) {
             return -1L;
         }

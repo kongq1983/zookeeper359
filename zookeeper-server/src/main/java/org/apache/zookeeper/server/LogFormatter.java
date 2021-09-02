@@ -43,7 +43,7 @@ public class LogFormatter {
     /**
      * @param args
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {  args = new String[1]; args[0] = "C:\\tmp\\zookeeper\\version-2\\snapshot.41";
         if (args.length != 1) {
             System.err.println("USAGE: LogFormatter log_file");
             System.exit(2);
