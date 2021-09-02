@@ -51,7 +51,7 @@ import org.apache.zookeeper.server.command.NopCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
+/** ClientCnxn
  * This class handles communication with clients using NIO. There is one per
  * client, but only one thread doing the communication.
  */

@@ -99,7 +99,7 @@ public class DataTree {
     /** this will be the string thats stored as a child of root */
     private static final String procChildZookeeper = procZookeeper.substring(1);
 
-    /**
+    /** /zookeeper/quota
      * the zookeeper quota node that acts as the quota management node for
      * zookeeper
      */
@@ -124,7 +124,7 @@ public class DataTree {
      */
     private final PathTrie pTrie = new PathTrie();
 
-    /**
+    /** key : sessionId   value: 该sessionId创建的临时节点列表
      * This hashtable lists the paths of the ephemeral nodes of a session.
      */
     private final Map<Long, HashSet<String>> ephemerals =
@@ -525,18 +525,18 @@ public class DataTree {
     public void deleteNode(String path, long zxid)
             throws KeeperException.NoNodeException {
         int lastSlash = path.lastIndexOf('/');
-        String parentName = path.substring(0, lastSlash);
-        String childName = path.substring(lastSlash + 1);
+        String parentName = path.substring(0, lastSlash);  //父节点 全路径
+        String childName = path.substring(lastSlash + 1); // 子节点最后1层路径
 
         // The child might already be deleted during taking fuzzy snapshot,
         // but we still need to update the pzxid here before throw exception
         // for no such child
-        DataNode parent = nodes.get(parentName);
+        DataNode parent = nodes.get(parentName); // 获取父节点
         if (parent == null) {
             throw new KeeperException.NoNodeException();
         }
         synchronized (parent) {
-            parent.removeChild(childName);
+            parent.removeChild(childName); //删除子节点
             // Only update pzxid when the zxid is larger than the current pzxid,
             // otherwise we might override higher pzxid set by a following create 
             // Txn, which could cause the cversion and pzxid inconsistent
@@ -545,11 +545,11 @@ public class DataTree {
             }
         }
 
-        DataNode node = nodes.get(path);
+        DataNode node = nodes.get(path); //获取要删除节点
         if (node == null) {
             throw new KeeperException.NoNodeException();
         }
-        nodes.remove(path);
+        nodes.remove(path); //从nodes删除该节点
         synchronized (node) {
             aclCache.removeUsage(node.acl);
         }
@@ -564,11 +564,11 @@ public class DataTree {
                 containers.remove(path);
             } else if (ephemeralType == EphemeralType.TTL) {
                 ttls.remove(path);
-            } else if (eowner != 0) {
+            } else if (eowner != 0) { // 临时节点
                 HashSet<String> nodes = ephemerals.get(eowner);
                 if (nodes != null) {
                     synchronized (nodes) {
-                        nodes.remove(path);
+                        nodes.remove(path); // 从nodes删除该path
                     }
                 }
             }
@@ -599,8 +599,8 @@ public class DataTree {
         }
         Set<Watcher> processed = dataWatches.triggerWatch(path,
                 EventType.NodeDeleted);
-        childWatches.triggerWatch(path, EventType.NodeDeleted, processed);
-        childWatches.triggerWatch("".equals(parentName) ? "/" : parentName,
+        childWatches.triggerWatch(path, EventType.NodeDeleted, processed); // 通知节点删除事件监听
+        childWatches.triggerWatch("".equals(parentName) ? "/" : parentName, // 通知子节点变动事件监听
                 EventType.NodeChildrenChanged);
     }
 
@@ -626,7 +626,7 @@ public class DataTree {
           this.updateBytes(lastPrefix, (data == null ? 0 : data.length)
               - (lastdata == null ? 0 : lastdata.length));
         }
-        dataWatches.triggerWatch(path, EventType.NodeDataChanged);
+        dataWatches.triggerWatch(path, EventType.NodeDataChanged); // 通知数据改变事件
         return s;
     }
 
@@ -659,7 +659,7 @@ public class DataTree {
         synchronized (n) {
             n.copyStat(stat);
             if (watcher != null) {
-                dataWatches.addWatch(path, watcher);
+                dataWatches.addWatch(path, watcher); // 添加监听事件
             }
             return n.data;
         }
@@ -694,7 +694,7 @@ public class DataTree {
             List<String> children=new ArrayList<String>(n.getChildren());
 
             if (watcher != null) {
-                childWatches.addWatch(path, watcher);
+                childWatches.addWatch(path, watcher);  // todo childWatches
             }
             return children;
         }

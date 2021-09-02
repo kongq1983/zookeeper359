@@ -454,7 +454,7 @@ public class ClientCnxn {
         public void queueEvent(WatchedEvent event) {
             queueEvent(event, null);
         }
-
+        // todo 客户端监听调用这里 waitingEvents
         private void queueEvent(WatchedEvent event,
                 Set<Watcher> materializedWatchers) {
             if (event.getType() == EventType.None
@@ -527,7 +527,7 @@ public class ClientCnxn {
 
        private void processEvent(Object event) {
           try {
-              if (event instanceof WatcherSetEventPair) {
+              if (event instanceof WatcherSetEventPair) { // todo client 监听通知
                   // each watcher will process the event
                   WatcherSetEventPair pair = (WatcherSetEventPair) event;
                   for (Watcher watcher : pair.watchers) {
@@ -840,7 +840,7 @@ public class ClientCnxn {
                 }
                 return;
             }
-            if (replyHdr.getXid() == -1) {
+            if (replyHdr.getXid() == -1) { // TODO 客户端监听收到 NOTIFICATION
                 // -1 means notification
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Got notification sessionid:0x"
@@ -869,7 +869,7 @@ public class ClientCnxn {
                             + Long.toHexString(sessionId));
                 }
 
-                eventThread.queueEvent( we );
+                eventThread.queueEvent( we ); // todo 丢到eventThread的waitingEvents
                 return;
             }
 

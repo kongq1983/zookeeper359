@@ -39,10 +39,10 @@ import org.slf4j.LoggerFactory;
  */
 class WatchManager {
     private static final Logger LOG = LoggerFactory.getLogger(WatchManager.class);
-
+    /** 1个节点多个监听者 */
     private final HashMap<String, HashSet<Watcher>> watchTable =
         new HashMap<String, HashSet<Watcher>>();
-
+    /** 一个客户端可以监听多个节点 */
     private final HashMap<Watcher, HashSet<String>> watch2Paths =
         new HashMap<Watcher, HashSet<String>>();
 
@@ -119,7 +119,7 @@ class WatchManager {
             if (supress != null && supress.contains(w)) {
                 continue;
             }
-            w.process(e);
+            w.process(e); // NIOServerCnxn
         }
         return watchers;
     }
